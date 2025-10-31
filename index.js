@@ -1,3 +1,4 @@
+// index.js
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -9,22 +10,24 @@ const usersRouter = require('./users');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// --- Middleware ---
 app.use(express.json());
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'DELETE'] }));
 
-// --- Serve frontend ---
-app.use(express.static(__dirname)); // чтобы index.html и стили открывались прямо на домене
+// --- Подключаем фронтенд (index.html, стили и т.п.) ---
+app.use(express.static(__dirname));
 
-// --- API routes ---
+// --- Подключаем API ---
 app.use('/posts', postsRouter);
 app.use('/comments', commentsRouter);
 app.use('/users', usersRouter);
 
-// --- Fallback на index.html (если просто / или ошибка) ---
-app.get('*', (req, res) => {
+// --- Главная страница (SPA fallback) ---
+app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// --- Запуск сервера ---
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
