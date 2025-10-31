@@ -22,8 +22,13 @@ app.use('/posts', postsRouter);
 app.use('/comments', commentsRouter);
 app.use('/users', usersRouter);
 
-// --- Главная страница (SPA fallback) ---
-app.get('/*', (req, res) => {
+// --- Главная страница ---
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// --- fallback (если пользователь зашёл, например, /profile или /feed) ---
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
