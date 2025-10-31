@@ -1,61 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Social API Tester</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mini Social App 🚀</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 2em; }
-    label, input, textarea, button { display: block; margin-top: 1em; }
-    #posts { margin-top: 2em; }
-    .post { border: 1px solid #bbb; padding: 1em; margin-bottom: 1em; border-radius: 8px; background: #f7f7f9; }
-    .comments { margin-left: 2em; margin-top: 0.7em; }
-    .comment { margin-bottom: 0.6em; }
-    .actions { margin-top: 1em; }
-    input[type="text"] { width: 350px; }
-    textarea { width: 350px; height: 60px; }
+    body { font-family: Arial, sans-serif; margin: 2em; background: #f9fafb; color: #333; }
+    h1 { color: #444; }
+    textarea, input, button { display: block; margin-top: 10px; font-size: 1em; }
+    textarea { width: 400px; height: 70px; padding: 6px; }
+    input[type="text"] { width: 350px; padding: 6px; }
+    button { cursor: pointer; padding: 8px 16px; background: #007bff; color: #fff; border: none; border-radius: 6px; margin-top: 8px; }
+    button:hover { background: #0056b3; }
+    .post { border: 1px solid #ccc; background: #fff; border-radius: 8px; padding: 12px; margin-top: 15px; }
+    .comments { margin-top: 10px; border-top: 1px solid #eee; padding-top: 8px; }
+    .comment { margin-left: 10px; color: #555; }
   </style>
 </head>
 <body>
-  <h2>Social API Viewer</h2>
-  <label for="backendUrl">Backend API URL:</label>
-  <input id="backendUrl" type="text" value="http://localhost:3000">
-  <button onclick="fetchPosts()">Fetch Posts</button>
+  <h1>Mini Social App 🚀</h1>
 
   <h3>Create a New Post</h3>
   <textarea id="postContent" placeholder="Write your post..."></textarea>
   <button onclick="createPost()">Create Post</button>
 
-  <div id="posts"></div>
+  <h3>Posts</h3>
+  <div id="posts">Loading...</div>
 
   <script>
-    function getApiUrl() {
-      const url = document.getElementById('backendUrl').value.trim();
-      return url || 'http://localhost:3000';
-    }
+    const API_BASE = window.location.origin; // автоматом подхватит Railway URL
 
     async function fetchPosts() {
-      const url = getApiUrl();
-      document.getElementById('posts').textContent = 'Loading...';
+      const container = document.getElementById('posts');
+      container.textContent = 'Loading...';
       try {
-        const res = await fetch(`${url}/posts`);
-        if (!res.ok) throw new Error('Failed to fetch posts');
+        const res = await fetch(`${API_BASE}/posts`);
+        if (!res.ok) throw new Error('Failed to load posts');
         const posts = await res.json();
         renderPosts(posts);
       } catch (err) {
-        document.getElementById('posts').textContent = 'Error: ' + err;
+        container.textContent = 'Error: ' + err.message;
       }
     }
 
     async function createPost() {
-      const url = getApiUrl();
       const content = document.getElementById('postContent').value.trim();
-      if (!content) {
-        alert('Please enter some post content.');
-        return;
-      }
+      if (!content) return alert('Please write something!');
       try {
-        const res = await fetch(`${url}/posts`, {
+        const res = await fetch(`${API_BASE}/posts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ content })
@@ -64,32 +56,27 @@
         document.getElementById('postContent').value = '';
         fetchPosts();
       } catch (err) {
-        alert('Error: ' + err);
+        alert('Error: ' + err.message);
       }
     }
 
-    async function deletePost(postId) {
-      const url = getApiUrl();
-      if (!confirm('Delete post #' + postId + '?')) return;
+    async function deletePost(id) {
+      if (!confirm('Delete this post?')) return;
       try {
-        const res = await fetch(`${url}/posts/${postId}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error('Failed to delete post');
+        const res = await fetch(`${API_BASE}/posts/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Delete failed');
         fetchPosts();
       } catch (err) {
-        alert('Error: ' + err);
+        alert('Error: ' + err.message);
       }
     }
 
     async function addComment(postId) {
-      const url = getApiUrl();
       const input = document.getElementById(`commentInput-${postId}`);
       const commentContent = input.value.trim();
-      if (!commentContent) {
-        alert('Please enter some comment text.');
-        return;
-      }
+      if (!commentContent) return alert('Enter a comment first!');
       try {
-        const res = await fetch(`${url}/posts/${postId}/comments`, {
+        const res = await fetch(`${API_BASE}/posts/${postId}/comments`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ commentContent })
@@ -98,45 +85,39 @@
         input.value = '';
         fetchPosts();
       } catch (err) {
-        alert('Error: ' + err);
+        alert('Error: ' + err.message);
       }
     }
 
     function renderPosts(posts) {
-      const postsDiv = document.getElementById('posts');
+      const container = document.getElementById('posts');
       if (!Array.isArray(posts) || posts.length === 0) {
-        postsDiv.innerHTML = '<i>No posts found.</i>';
+        container.innerHTML = '<i>No posts yet.</i>';
         return;
       }
-      postsDiv.innerHTML = posts.map(post => `
+
+      container.innerHTML = posts.map(p => `
         <div class="post">
-          <b>Post #${post.id}</b><br>
-          <span>${escapeHtml(post.content)}</span>
-          <div class="actions">
-            <button onclick="deletePost(${post.id})">Delete</button>
-          </div>
+          <b>Post #${p.id}</b><br>
+          ${escapeHtml(p.content)}<br>
+          <button onclick="deletePost(${p.id})">🗑️ Delete</button>
+
           <div class="comments">
-            <b>Comments:</b>
-            <div>
-              ${Array.isArray(post.comments) && post.comments.length > 0
-                ? post.comments.map(comment => `<div class='comment'>#${comment.id}: ${escapeHtml(comment.content)}</div>`).join('')
-                : '<i>No comments</i>'
-              }
-            </div>
-            <input id="commentInput-${post.id}" type="text" placeholder="Add a comment...">
-            <button onclick="addComment(${post.id})">Add Comment</button>
+            <b>Comments:</b><br>
+            ${(p.comments && p.comments.length > 0)
+              ? p.comments.map(c => `<div class="comment">💬 ${escapeHtml(c.content)}</div>`).join('')
+              : '<i>No comments yet</i>'}
+            <input id="commentInput-${p.id}" type="text" placeholder="Add a comment...">
+            <button onclick="addComment(${p.id})">Add Comment</button>
           </div>
         </div>
       `).join('');
     }
 
-    function escapeHtml(string) {
-      return string.replace(/[&<>"]/g, function (c) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-      });
+    function escapeHtml(str) {
+      return str.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     }
 
-    // Auto-fetch posts on initial load
     fetchPosts();
   </script>
 </body>
