@@ -8,13 +8,13 @@ const app = express();
 app.use(express.json());
 
 /**
- * IMPORTANT FOR DEPLOYMENT:
- * When deploying to Railway, set the CLIENT_URL environment variable (e.g., https://my-site-name.up.railway.app)
- * to allow the backend to accept requests exclusively from your frontend domain.
+ * DEPLOYMENT NOTE:
+ * During deployment, you can later set CLIENT_URL (e.g. https://myfrontend.site)
+ * in the platform environment variables.
+ * For now, allow all origins to prevent 502 errors.
  */
-
 const corsOptions = {
-  origin: process.env.CLIENT_URL,
+  origin: '*', // ← временно открыто для всех (иначе 502 при отсутствии CLIENT_URL)
   methods: ['GET', 'POST', 'DELETE']
 };
 app.use(cors(corsOptions));
@@ -114,6 +114,7 @@ app.get('/', (req, res) => {
   res.status(200).json({ status: 'ok', api: 'social-api is running' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
+// Start the server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server started on port ${PORT}`);
 });
