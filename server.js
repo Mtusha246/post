@@ -109,6 +109,11 @@ app.post('/posts/:postId/comments', async (req, res) => {
   res.status(200).json(post);
 });
 
+// GET / - Health check endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'ok', api: 'social-api is running' });
+});
+
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
