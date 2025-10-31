@@ -3,10 +3,7 @@ const cors = require('cors');
 const fs = require('fs');
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server started on port ${PORT}`);
-});
-
+const app = express();
 
 app.use(express.json());
 
@@ -17,7 +14,7 @@ app.use(express.json());
  * For now, allow all origins to prevent 502 errors.
  */
 const corsOptions = {
-  origin: '*', // ← временно открыто для всех (иначе 502 при отсутствии CLIENT_URL)
+  origin: '*', // ← временно открыто для всех
   methods: ['GET', 'POST', 'DELETE']
 };
 app.use(cors(corsOptions));
@@ -53,13 +50,16 @@ async function writeData(data) {
   });
 }
 
-// GET /posts - Get all posts
+// Routes
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'ok', api: 'social-api is running' });
+});
+
 app.get('/posts', async (req, res) => {
   const posts = await readData();
   res.status(200).json(posts);
 });
 
-// POST /posts - Create new post
 app.post('/posts', async (req, res) => {
   const { content } = req.body;
   if (!content || typeof content !== 'string') {
@@ -77,7 +77,6 @@ app.post('/posts', async (req, res) => {
   res.status(201).json(newPost);
 });
 
-// DELETE /posts/:id - Delete post by ID
 app.delete('/posts/:id', async (req, res) => {
   const postId = parseInt(req.params.id, 10);
   let posts = await readData();
@@ -90,7 +89,6 @@ app.delete('/posts/:id', async (req, res) => {
   res.status(200).json({ message: 'Post deleted successfully.' });
 });
 
-// POST /posts/:postId/comments - Add comment to a post
 app.post('/posts/:postId/comments', async (req, res) => {
   const postId = parseInt(req.params.postId, 10);
   const { commentContent } = req.body;
@@ -112,13 +110,7 @@ app.post('/posts/:postId/comments', async (req, res) => {
   res.status(200).json(post);
 });
 
-// GET / - Health check endpoint
-app.get('/', (req, res) => {
-  res.status(200).json({ status: 'ok', api: 'social-api is running' });
-});
-
-// Start the server
+// Start the server — MUST BE AT THE END
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server started on port ${PORT}`);
 });
-
