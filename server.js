@@ -3,7 +3,10 @@ const cors = require('cors');
 const fs = require('fs');
 
 const PORT = process.env.PORT || 3000;
-const app = express();
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server started on port ${PORT}`);
+});
+
 
 app.use(express.json());
 
@@ -118,3 +121,4 @@ app.get('/', (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server started on port ${PORT}`);
 });
+
