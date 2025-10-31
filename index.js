@@ -1,16 +1,12 @@
 // index.js
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000; // ← ВАЖНО: Railway сам установит PORT
 const app = express();
-const DATA_FILE = './data.json';
 
-// --- ensure file exists ---
-if (!fs.existsSync(DATA_FILE)) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify([]));
-}
+// --- IN-MEMORY storage ---
+let postsData = [];
 
 // --- middleware ---
 app.use(express.json({ limit: '1mb' }));
@@ -18,21 +14,11 @@ app.use(cors({ origin: '*', methods: ['GET', 'POST', 'DELETE'] }));
 
 // --- helper functions ---
 function readData() {
-  try {
-    const data = fs.readFileSync(DATA_FILE, 'utf8');
-    return JSON.parse(data || '[]');
-  } catch (err) {
-    console.error('Error reading file:', err);
-    return [];
-  }
+  return postsData;
 }
 
 function writeData(data) {
-  try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-  } catch (err) {
-    console.error('Error writing file:', err);
-  }
+  postsData = data;
 }
 
 // --- routes ---
