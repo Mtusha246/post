@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db'); // импорт твоего модуля для работы с базой
+const db = require('./db');
+ // импорт твоего модуля для работы с базой
 
 // === Получить все посты с комментариями ===
 router.get('/', async (req, res) => {
