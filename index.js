@@ -1,4 +1,3 @@
-// index.js
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -19,7 +18,7 @@ app.use('/api/posts', postsRouter);
 app.use('/api/comments', commentsRouter);
 app.use('/api/users', usersRouter);
 
-// --- Подключаем фронтенд (index.html, стили и т.п.) ---
+// --- Подключаем фронтенд ---
 app.use(express.static(__dirname));
 
 // --- Главная страница ---
@@ -27,12 +26,12 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- fallback для маршрутов SPA (например, /profile, /feed, /comments) ---
-app.get('*', (req, res) => {
+// --- fallback для SPA ---
+app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- Запуск сервера ---
+// --- Запуск ---
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
