@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('./db');
-const authMiddleware = require('./middleware/authMiddleware'); // 👈 JWT мидлвэр
+const authMiddleware = require('./authMiddleware'); // 👈 JWT мидлвэр
 
 // === Добавить комментарий к посту ===
 router.post('/:postId', authMiddleware, async (req, res) => {
