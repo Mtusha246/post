@@ -14,21 +14,21 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'DELETE'] }));
 
+// --- Подключаем API (всё под /api/...) ---
+app.use('/api/posts', postsRouter);
+app.use('/api/comments', commentsRouter);
+app.use('/api/users', usersRouter);
+
 // --- Подключаем фронтенд (index.html, стили и т.п.) ---
 app.use(express.static(__dirname));
-
-// --- Подключаем API ---
-app.use('/posts', postsRouter);
-app.use('/comments', commentsRouter);
-app.use('/users', usersRouter);
 
 // --- Главная страница ---
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- fallback (если пользователь зашёл, например, /profile или /feed) ---
-app.use((req, res) => {
+// --- fallback для маршрутов SPA (например, /profile, /feed, /comments) ---
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
