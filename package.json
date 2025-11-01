@@ -1,7 +1,7 @@
 {
   "name": "social-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "Mini social app backend with Express and PostgreSQL",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -11,7 +11,11 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "express": "^5.1.0",
     "cors": "^2.8.5",
-    "express": "^5.1.0"
+    "pg": "^8.11.1",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "dotenv": "^16.3.1"
   }
 }
