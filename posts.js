@@ -22,3 +22,5 @@ router.post('/', async (req, res) => {
 
   res.status(201).json(result.rows[0]);
 });
+
+module.exports = router;
