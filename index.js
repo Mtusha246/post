@@ -5,6 +5,7 @@ const path = require('path');
 const postsRouter = require('./posts');
 const commentsRouter = require('./comments');
 const usersRouter = require('./users');
+const authRouter = require('./auth'); // 👈 добавили авторизацию
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -26,6 +27,7 @@ app.use(express.static(__dirname));
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // --- API (keep API routes after static so assets still served) ---
+app.use('/auth', authRouter); // 👈 маршруты регистрации и логина
 app.use('/posts', postsRouter);
 app.use('/comments', commentsRouter);
 app.use('/users', usersRouter);
@@ -37,9 +39,9 @@ app.use((req, res, next) => {
     req.originalUrl.startsWith('/posts') ||
     req.originalUrl.startsWith('/comments') ||
     req.originalUrl.startsWith('/users') ||
-    req.originalUrl.startsWith('/api')
+    req.originalUrl.startsWith('/api') ||
+    req.originalUrl.startsWith('/auth') // 👈 добавлено
   ) {
-    // if we reach here it means API route was not found
     return res.status(404).json({ error: 'API route not found' });
   }
 
