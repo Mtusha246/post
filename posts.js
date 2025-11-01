@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('./db'); // если ты работаешь через pg или sequelize
 
 // ...твои существующие маршруты для постов
+console.log("✅ posts.js connected");
 
 // Добавляем комментарий к посту
 router.post('/:id/comments', async (req, res) => {
