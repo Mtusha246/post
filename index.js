@@ -9,16 +9,15 @@ const usersRouter = require('./users');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// --- Middleware ---
 app.use(express.json());
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'DELETE'] }));
 
 // --- API ---
-app.use('/api/posts', postsRouter);
-app.use('/api/comments', commentsRouter);
-app.use('/api/users', usersRouter);
+app.use('/posts', postsRouter);
+app.use('/comments', commentsRouter);
+app.use('/users', usersRouter);
 
-// --- Статика (фронт) ---
+// --- Отдаём статику ---
 app.use(express.static(__dirname));
 
 // --- Главная страница ---
@@ -26,17 +25,18 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- Fallback для SPA ---
+// --- Fallback только для фронта (не для API) ---
 app.use((req, res, next) => {
   if (
-    req.originalUrl.startsWith('/api/') || 
     req.originalUrl.startsWith('/posts') ||
     req.originalUrl.startsWith('/comments') ||
     req.originalUrl.startsWith('/users')
   ) {
-    return next(); // не трогаем API
+    // Не обрабатываем API — пусть Express ищет маршрут
+    return res.status(404).json({ error: 'Not Found' });
   }
 
+  // А вот остальное — фронту
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
