@@ -4,7 +4,7 @@
   "description": "Mini social app backend with Express and PostgreSQL",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
     "init-db": "node init_db.js"
   },
   "keywords": [],
@@ -20,4 +20,5 @@
     "dotenv": "^16.3.1"
   }
 }
+
 
