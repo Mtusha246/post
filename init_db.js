@@ -15,12 +15,14 @@ async function init() {
     // === USERS ===
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
+         id SERIAL PRIMARY KEY,
+         username TEXT UNIQUE NOT NULL,
+         email TEXT UNIQUE,
+         password TEXT NOT NULL,
+         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+     );
+  `);
+
 
     // === POSTS ===
     await client.query(`
