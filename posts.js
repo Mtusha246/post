@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('./db');
-const authMiddleware = require('./middleware/authMiddleware'); // 👈 импортируем JWT мидлвэр
+const authMiddleware = require('./authMiddleware'); // 👈 импортируем JWT мидлвэр
 
 // === Получить все посты с комментариями === (открытый роут)
 router.get('/', async (req, res) => {
