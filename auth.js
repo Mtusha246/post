@@ -27,9 +27,12 @@ router.post('/register', async (req, res) => {
     return res.status(400).json({ error: 'All fields are required' });
 
   try {
-    const existing = await client.query('SELECT * FROM users WHERE email=$1', [email]);
+    const existing = await client.query(
+      'SELECT * FROM users WHERE email=$1 OR username=$2',
+      [email, username]
+    );
     if (existing.rows.length > 0)
-      return res.status(400).json({ error: 'Email already registered' });
+      return res.status(400).json({ error: 'Email or username already registered' });
 
     const hash = await bcrypt.hash(password, 10);
     const verificationToken = Math.random().toString(36).substring(2, 15);
@@ -40,6 +43,7 @@ router.post('/register', async (req, res) => {
       [username, email, hash, true, verificationToken]
     );
 
+    console.log('✅ Registered new user:', username);
     res.json({ success: true });
   } catch (err) {
     console.error('❌ Register error:', err);
@@ -47,49 +51,57 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// === логин по USERNAME ===
+// === логин по USERNAME или EMAIL ===
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, email, password } = req.body;
 
-  if (!username || !password)
-    return res.status(400).json({ error: 'Username and password required' });
+  if ((!username && !email) || !password)
+    return res.status(400).json({ error: 'Username/email and password required' });
 
   try {
-    const result = await client.query('SELECT * FROM users WHERE username=$1', [username]);
+    const identifier = username || email;
+
+    // ищем по username или email
+    const result = await client.query(
+      'SELECT * FROM users WHERE username=$1 OR email=$1',
+      [identifier]
+    );
+
     if (result.rows.length === 0) {
-      console.log('⚠️  User not found for username:', username);
-      return res.status(400).json({ error: 'User not found' });
+      console.log('❌ User not found for:', identifier);
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const user = result.rows[0];
-    console.log('🔎 User found in DB:', user);
+    console.log('🔎 Found user:', user.username, 'verified:', user.verified);
 
     const valid = await bcrypt.compare(password, user.password);
-    console.log('🔵 bcrypt.compare result:', valid);
+    console.log('🔵 Password valid?', valid);
 
-    if (!valid)
-      return res.status(401).json({ error: 'Invalid password' });
+    if (!valid) {
+      console.log('❌ Invalid password for:', identifier);
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
     if (!user.verified) {
-      console.log('🚫 User not verified');
+      console.log('⚠️ User not verified:', identifier);
       return res.status(403).json({ error: 'Email not verified' });
     }
 
     const token = jwt.sign(
-      { id: user.id, username: user.username },
+      { id: user.id, email: user.email, username: user.username },
       JWT_SECRET,
       { expiresIn: '2h' }
     );
 
-    // === ставим cookie с токеном ===
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false, // поставь true, если у тебя HTTPS
+      secure: false, // true если https
       sameSite: 'lax',
       maxAge: 2 * 60 * 60 * 1000,
     });
 
-    console.log('✅ Login successful for user:', username);
+    console.log('✅ Login success for:', identifier);
     res.json({ success: true, message: 'Login successful' });
   } catch (err) {
     console.error('❌ Login error:', err);
