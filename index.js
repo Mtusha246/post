@@ -2,15 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const cookieParser = require('cookie-parser');
-const { verifyToken } = require('./authMiddleware');
-
-const postsRouter = require('./posts');
-const commentsRouter = require('./comments');
-const usersRouter = require('./users');
-const authRouter = require('./auth');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+const SECRET = process.env.JWT_SECRET || 'supersecret';
 
 // ---- лог запросов ----
 app.use((req, res, next) => {
@@ -21,10 +17,12 @@ app.use((req, res, next) => {
 // ---- middleware ----
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
-}));
+app.use(
+  cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
+  })
+);
 
 // ---- статика прямо из корня ----
 app.use(express.static(__dirname));
@@ -32,51 +30,57 @@ app.use(express.static(__dirname));
 // ---- favicon ----
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-// ---- API ----
-app.use('/auth', authRouter);
-app.use('/posts', postsRouter);
-app.use('/comments', commentsRouter);
-app.use('/users', usersRouter);
+// ---- Проверка токена ----
+function verifyToken(token) {
+  try {
+    return jwt.verify(token, SECRET);
+  } catch {
+    return null;
+  }
+}
+
+// ---- API логин ----
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+
+  // 👇 Простейшая проверка (позже можно заменить на реальную)
+  if (username === 'admin' && password === '1234') {
+    const token = jwt.sign({ username }, SECRET, { expiresIn: '1h' });
+    res.cookie('token', token, { httpOnly: true });
+    return res.json({ success: true });
+  }
+
+  res.status(401).json({ success: false, message: 'Invalid credentials' });
+});
 
 // ---- Главная страница ----
-// если нет токена → auth.html
-// если токен есть и валиден → index.html
 app.get('/', (req, res) => {
   const token = req.cookies?.token;
 
   if (!token) {
-    console.log('🟠 Нет токена, показываю auth.html');
+    console.log('🟠 Нет токена — показываю auth.html');
     return res.sendFile(path.join(__dirname, 'auth.html'));
   }
 
-  try {
-    verifyToken(token);
-    console.log('🟢 Валидный токен, показываю index.html');
-    res.sendFile(path.join(__dirname, 'index.html'));
-  } catch (err) {
-    console.log('🔴 Невалидный токен, показываю auth.html');
-    res.sendFile(path.join(__dirname, 'auth.html'));
+  const valid = verifyToken(token);
+  if (valid) {
+    console.log('🟢 Валидный токен — показываю index.html');
+    return res.sendFile(path.join(__dirname, 'index.html'));
   }
+
+  console.log('🔴 Невалидный токен — показываю auth.html');
+  res.sendFile(path.join(__dirname, 'auth.html'));
+});
+
+// ---- logout ----
+app.post('/logout', (req, res) => {
+  res.clearCookie('token');
+  res.json({ success: true });
 });
 
 // ---- fallback ----
 app.use((req, res) => {
-  if (
-    req.originalUrl.startsWith('/posts') ||
-    req.originalUrl.startsWith('/comments') ||
-    req.originalUrl.startsWith('/users') ||
-    req.originalUrl.startsWith('/auth')
-  ) {
-    return res.status(404).json({ error: 'API route not found' });
-  }
-
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// ---- error handler ----
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err?.stack || err);
-  res.status(500).json({ error: 'Internal Server Error' });
+  res.sendFile(path.join(__dirname, 'auth.html'));
 });
 
 // ---- запуск ----
