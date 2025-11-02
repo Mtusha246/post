@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: true, // 🔥 автоматически подставляет нужный домен
+    origin: true,
     credentials: true,
   })
 );
@@ -107,17 +107,21 @@ app.post('/login', async (req, res) => {
       { expiresIn: '2h' }
     );
 
-    res.cookie('token', token, {
+    const cookieOptions = {
       httpOnly: true,
-      secure: true,
-      sameSite: 'None',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
       path: '/',
       maxAge: 2 * 60 * 60 * 1000,
-    });
+    };
+
+    res.cookie('token', token, cookieOptions);
 
     console.log('✅ Login success:', identifier);
-    console.log('🍪 Cookie set successfully');
-    res.json({ success: true });
+    res.json({
+      success: true,
+      user: { id: user.id, username: user.username, email: user.email },
+    });
   } catch (err) {
     console.error('❌ Login error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -140,8 +144,9 @@ app.get('/check-auth', (req, res) => {
     return res.json({ authenticated: false });
   }
 
-  console.log('🟢 /check-auth → Authenticated as', decoded.username);
-  res.json({ authenticated: true, user: decoded });
+  const user = { id: decoded.id, username: decoded.username, email: decoded.email };
+  console.log('🟢 /check-auth → Authenticated as', user.username);
+  res.json({ authenticated: true, user });
 });
 
 // === HOME ===
@@ -167,8 +172,8 @@ app.get('/', (req, res) => {
 // === LOGOUT ===
 app.post('/logout', (req, res) => {
   res.clearCookie('token', {
-    sameSite: 'None',
-    secure: true,
+    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+    secure: process.env.NODE_ENV === 'production',
     path: '/',
   });
   console.log('🚪 Logout — cookie cleared');
