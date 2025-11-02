@@ -20,7 +20,7 @@
   </div>
 
   <form id="loginForm" class="active">
-    <input type="text" id="loginEmail" placeholder="Email" required>
+    <input type="email" id="loginEmail" placeholder="Email" required>
     <input type="password" id="loginPassword" placeholder="Password" required>
     <button type="submit">Login</button>
   </form>
@@ -33,7 +33,6 @@
   </form>
 
   <script>
-    // переключатель вкладок
     const loginTab = document.getElementById('loginTab');
     const registerTab = document.getElementById('registerTab');
     const loginForm = document.getElementById('loginForm');
@@ -48,7 +47,7 @@
       loginForm.classList.remove('active');
     };
 
-    // === ЛОГИН ===
+    // === LOGIN ===
     loginForm.onsubmit = async (e) => {
       e.preventDefault();
       const email = loginEmail.value;
@@ -56,18 +55,19 @@
       const res = await fetch('/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // 👈 важно для cookie
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        window.location.href = '/';
+      if (data.success) {
+        alert('Login successful!');
+        window.location.href = '/'; // после логина — на главную
       } else {
         alert(data.error || 'Login failed');
       }
     };
 
-    // === РЕГИСТРАЦИЯ ===
+    // === REGISTER ===
     registerForm.onsubmit = async (e) => {
       e.preventDefault();
       const username = regUsername.value;
@@ -76,6 +76,7 @@
       const res = await fetch('/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ username, email, password })
       });
       const data = await res.json();
