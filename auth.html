@@ -36,7 +36,7 @@
     <button type="submit">Register</button>
   </form>
 
-  <div id="cookieStatus">Checking token...</div>
+  <div id="cookieStatus">Checking login status...</div>
 
   <script>
     const loginTab = document.getElementById('loginTab');
@@ -59,12 +59,26 @@
       loginTab.classList.remove('active');
     };
 
-    // === Check cookies ===
-    function checkCookies() {
-      const hasToken = document.cookie.includes('token=');
-      cookieStatus.textContent = hasToken ? '✅ Token detected — you are logged in' : '❌ No token detected — please log in';
+    // ✅ Проверка авторизации через сервер
+    async function checkAuth() {
+      try {
+        const res = await fetch('/check-auth', { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated) {
+            cookieStatus.textContent = '✅ Logged in as ' + data.user.username;
+            setTimeout(() => (window.location.href = '/'), 1000);
+          } else {
+            cookieStatus.textContent = '❌ No valid session — please log in';
+          }
+        } else {
+          cookieStatus.textContent = '❌ Not logged in';
+        }
+      } catch (err) {
+        cookieStatus.textContent = '⚠️ Server not reachable';
+      }
     }
-    checkCookies();
+    checkAuth();
 
     // === LOGIN ===
     loginForm.onsubmit = async (e) => {
@@ -75,17 +89,14 @@
       const res = await fetch('/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // ✅ обязательно для куки
+        credentials: 'include',
         body: JSON.stringify({ username: identifier, email: identifier, password })
       });
 
       const data = await res.json();
       if (data.success) {
         alert('✅ Login successful!');
-        setTimeout(() => {
-          checkCookies();
-          window.location.href = '/';
-        }, 800);
+        setTimeout(() => window.location.href = '/', 800);
       } else {
         alert('❌ ' + (data.error || 'Login failed'));
       }
