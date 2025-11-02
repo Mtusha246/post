@@ -1,50 +1,3 @@
-// auth.js
-const express = require('express');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { Client } = require('pg');
-
-const router = express.Router();
-
-// === подключение к PostgreSQL ===
-const client = new Client({
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:gjbLXHghHdItlgjBWudmyhfESlrbsPke@caboose.proxy.rlwy.net:19817/railway',
-  ssl: { rejectUnauthorized: false },
-});
-
-client.connect();
-
-// === секрет для JWT ===
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecret123';
-
-// === регистрация ===
-router.post('/register', async (req, res) => {
-  const { username, email, password } = req.body;
-
-  if (!username || !email || !password)
-    return res.status(400).json({ error: 'All fields are required' });
-
-  try {
-    const existing = await client.query('SELECT * FROM users WHERE email=$1', [email]);
-    if (existing.rows.length > 0)
-      return res.status(400).json({ error: 'Email already registered' });
-
-    const hash = await bcrypt.hash(password, 10);
-    const verificationToken = Math.random().toString(36).substring(2, 15);
-
-    await client.query(
-      `INSERT INTO users (username, email, password, verified, verification_token)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [username, email, hash, true, verificationToken] // пока verified=true, потом можно включить реальную верификацию
-    );
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error('❌ Register error:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
 // === логин ===
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -70,11 +23,19 @@ router.post('/login', async (req, res) => {
       { expiresIn: '2h' }
     );
 
-    res.json({ token });
+    // 👇 Добавляем установку cookie
+    res.cookie('token', token, {
+      httpOnly: true,   // защищает от JS-доступа
+      secure: false,    // true если HTTPS
+      sameSite: 'lax',
+      maxAge: 2 * 60 * 60 * 1000, // 2 часа
+    });
+
+    // Можешь вернуть сообщение, но не сам токен
+    res.json({ success: true, message: 'Login successful' });
+
   } catch (err) {
     console.error('❌ Login error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
-
-module.exports = router;
