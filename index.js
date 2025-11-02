@@ -12,72 +12,74 @@ const authRouter = require('./auth');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// ---- simple request logger for debugging ----
+// ---- лог запросов ----
 app.use((req, res, next) => {
   console.log(`[REQ] ${req.method} ${req.originalUrl}`);
   next();
 });
 
-// Middleware
+// ---- middleware ----
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ origin: '*', methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'] }));
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
+}));
 
-// ---- Serve static files (CSS, JS, images) ----
-app.use(express.static(__dirname)); // 👈 всё ищет в корне проекта
+// ---- статика прямо из корня ----
+app.use(express.static(__dirname));
 
-// optional: silence browser favicon requests
+// ---- favicon ----
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-// --- API ---
+// ---- API ----
 app.use('/auth', authRouter);
 app.use('/posts', postsRouter);
 app.use('/comments', commentsRouter);
 app.use('/users', usersRouter);
 
-// --- Default route: если нет токена — показываем auth.html ---
+// ---- Главная страница ----
+// если нет токена → auth.html
+// если токен есть и валиден → index.html
 app.get('/', (req, res) => {
   const token = req.cookies?.token;
 
   if (!token) {
-    // если нет токена — сразу на страницу логина
+    console.log('🟠 Нет токена, показываю auth.html');
     return res.sendFile(path.join(__dirname, 'auth.html'));
   }
 
   try {
-    // проверяем токен
     verifyToken(token);
-    // если всё норм — показываем главную страницу
+    console.log('🟢 Валидный токен, показываю index.html');
     res.sendFile(path.join(__dirname, 'index.html'));
-  } catch {
-    // если токен недействителен — снова логин
+  } catch (err) {
+    console.log('🔴 Невалидный токен, показываю auth.html');
     res.sendFile(path.join(__dirname, 'auth.html'));
   }
 });
 
-// --- Fallback для SPA ---
-app.use((req, res, next) => {
+// ---- fallback ----
+app.use((req, res) => {
   if (
     req.originalUrl.startsWith('/posts') ||
     req.originalUrl.startsWith('/comments') ||
     req.originalUrl.startsWith('/users') ||
-    req.originalUrl.startsWith('/api') ||
     req.originalUrl.startsWith('/auth')
   ) {
     return res.status(404).json({ error: 'API route not found' });
   }
 
-  // 👇 если не API, возвращаем основную страницу
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ---- central error handler ----
+// ---- error handler ----
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err && err.stack ? err.stack : err);
+  console.error('Unhandled error:', err?.stack || err);
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-// --- Start server ---
+// ---- запуск ----
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
