@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: 'https://post-production-71c1.up.railway.app',
+    origin: true, // 🔥 автоматически подставляет нужный домен
     credentials: true,
   })
 );
@@ -116,6 +116,7 @@ app.post('/login', async (req, res) => {
     });
 
     console.log('✅ Login success:', identifier);
+    console.log('🍪 Cookie set successfully');
     res.json({ success: true });
   } catch (err) {
     console.error('❌ Login error:', err);
@@ -125,6 +126,8 @@ app.post('/login', async (req, res) => {
 
 // === CHECK AUTH ===
 app.get('/check-auth', (req, res) => {
+  console.log('🍪 /check-auth cookies:', req.cookies);
+
   const token = req.cookies?.token;
   if (!token) {
     console.log('🟠 /check-auth → No token');
@@ -143,7 +146,7 @@ app.get('/check-auth', (req, res) => {
 
 // === HOME ===
 app.get('/', (req, res) => {
-  console.log('🍪 Cookies received:', req.cookies);
+  console.log('🍪 Cookies received at /:', req.cookies);
 
   const token = req.cookies?.token;
   if (!token) {
