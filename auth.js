@@ -1,9 +1,12 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const { Client } = require('pg');
 
-const router = express.Router();
+const app = express();
+app.use(express.json());
+app.use(cookieParser());
 
 // === подключение к PostgreSQL ===
 const client = new Client({
@@ -13,13 +16,13 @@ const client = new Client({
   ssl: { rejectUnauthorized: false },
 });
 
-client.connect();
+client.connect().then(() => console.log('✅ PostgreSQL connected'));
 
 // === секрет для JWT ===
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret123';
 
 // === регистрация ===
-router.post('/register', async (req, res) => {
+app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
 
   if (!username || !email || !password)
@@ -30,9 +33,11 @@ router.post('/register', async (req, res) => {
       'SELECT * FROM users WHERE email=$1 OR username=$2',
       [email, username]
     );
+
     if (existing.rows.length > 0)
       return res.status(400).json({ error: 'Email or username already registered' });
 
+    // ✅ хэшируем пароль перед сохранением
     const hash = await bcrypt.hash(password, 10);
 
     await client.query(
@@ -50,7 +55,7 @@ router.post('/register', async (req, res) => {
 });
 
 // === логин ===
-router.post('/login', async (req, res) => {
+app.post('/login', async (req, res) => {
   const { username, email, password } = req.body;
 
   if ((!username && !email) || !password)
@@ -68,19 +73,22 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
 
     const user = result.rows[0];
-    const valid = await bcrypt.compare(password, user.password);
 
+    // ✅ сравниваем пароль с хэшем
+    const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
 
+    // ✅ создаём токен для конкретного пользователя
     const token = jwt.sign(
       { id: user.id, email: user.email, username: user.username },
       JWT_SECRET,
       { expiresIn: '2h' }
     );
 
+    // ✅ сохраняем токен в cookie
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // в продакшене только по HTTPS
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: 2 * 60 * 60 * 1000, // 2 часа
@@ -95,7 +103,7 @@ router.post('/login', async (req, res) => {
 });
 
 // === проверка токена ===
-router.get('/check-auth', (req, res) => {
+app.get('/check-auth', (req, res) => {
   const token = req.cookies.token;
   console.log('🍪 Cookies received:', req.cookies);
 
@@ -112,10 +120,12 @@ router.get('/check-auth', (req, res) => {
 });
 
 // === логаут ===
-router.post('/logout', (req, res) => {
+app.post('/logout', (req, res) => {
   res.clearCookie('token', { path: '/' });
   console.log('🚪 Logged out');
   res.json({ success: true });
 });
 
-module.exports = router;
+// === запуск сервера ===
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
