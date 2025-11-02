@@ -20,10 +20,10 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'] }));
 
-// ---- Serve static files first (css/js/images etc) ----
-app.use(express.static(__dirname + '/public')); // 👈 теперь все HTML лежат в /public
+// ---- Serve static files (CSS, JS, images) ----
+app.use(express.static(__dirname)); // 👈 всё ищет в корне проекта
 
-// optional: silence browser favicon requests (prevents 404 noise)
+// optional: silence browser favicon requests
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // --- API ---
@@ -34,10 +34,10 @@ app.use('/users', usersRouter);
 
 // --- Default route: если нет токена — показываем login.html ---
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+  res.sendFile(path.join(__dirname, 'login.html')); // 👈 лежит прямо в корне
 });
 
-// --- Fallback for SPA routes (frontend navigation) ---
+// --- Fallback для SPA ---
 app.use((req, res, next) => {
   if (
     req.originalUrl.startsWith('/posts') ||
@@ -49,8 +49,8 @@ app.use((req, res, next) => {
     return res.status(404).json({ error: 'API route not found' });
   }
 
-  // otherwise return main app
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  // 👇 если не API, возвращаем основную страницу
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // ---- central error handler ----
