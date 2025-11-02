@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: 'https://post-production-71c1.up.railway.app', // фиксированное значение
+    origin: 'https://post-production-71c1.up.railway.app',
     credentials: true,
   })
 );
@@ -38,7 +38,8 @@ app.use(express.static(__dirname));
 function verifyToken(token) {
   try {
     return jwt.verify(token, JWT_SECRET);
-  } catch {
+  } catch (err) {
+    console.log('❌ Token verify error:', err.message);
     return null;
   }
 }
@@ -106,12 +107,11 @@ app.post('/login', async (req, res) => {
       { expiresIn: '2h' }
     );
 
-    // === Вот тут ключ — фиксируем правильные cookie настройки ===
     res.cookie('token', token, {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      path: '/', // 👈 обязательно
+      path: '/',
       maxAge: 2 * 60 * 60 * 1000,
     });
 
@@ -125,7 +125,7 @@ app.post('/login', async (req, res) => {
 
 // === HOME ===
 app.get('/', (req, res) => {
-  console.log('Cookies received:', req.cookies);
+  console.log('🍪 Cookies received:', req.cookies);
 
   const token = req.cookies?.token;
   if (!token) {
@@ -135,7 +135,7 @@ app.get('/', (req, res) => {
 
   const valid = verifyToken(token);
   if (valid) {
-    console.log('🟢 Valid token — index page');
+    console.log('🟢 Valid token:', valid.username);
     return res.sendFile(path.join(__dirname, 'index.html'));
   }
 
@@ -150,6 +150,7 @@ app.post('/logout', (req, res) => {
     secure: true,
     path: '/',
   });
+  console.log('🚪 Logout — cookie cleared');
   res.json({ success: true });
 });
 
