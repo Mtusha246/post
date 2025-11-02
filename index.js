@@ -1,79 +1,142 @@
-import express from 'express';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const { Client } = require('pg');
 
 const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const PORT = process.env.PORT || 8080;
+const JWT_SECRET = process.env.JWT_SECRET || 'supersecret';
 
-const users = [];
-const JWT_SECRET = 'super_secret_key_change_me';
+// === PostgreSQL ===
+const client = new Client({
+  connectionString:
+    process.env.DATABASE_URL ||
+    'postgresql://postgres:gjbLXHghHdItlgjBWudmyhfESlrbsPke@caboose.proxy.rlwy.net:19817/railway',
+  ssl: { rejectUnauthorized: false },
+});
 
-// Middleware
+client
+  .connect()
+  .then(() => console.log('✅ Connected to Railway DB'))
+  .catch(console.error);
+
+// === Middleware ===
 app.use(express.json());
 app.use(cookieParser());
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
+app.use(express.static(__dirname));
 
-// ✅ CORS fix for Railway HTTPS
-app.use(cors({
-  origin: 'https://post-production-71c1.up.railway.app', // ← замени, если домен другой
-  credentials: true,
-}));
-
-// Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
+// === JWT ===
+function verifyToken(token) {
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch {
+    return null;
+  }
+}
 
 // === REGISTER ===
 app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
+  if (!username || !email || !password)
+    return res.status(400).json({ success: false, error: 'All fields required' });
 
-  if (users.find(u => u.username === username || u.email === email)) {
-    return res.json({ success: false, error: 'User already exists' });
+  try {
+    const existing = await client.query(
+      'SELECT * FROM users WHERE username=$1 OR email=$2',
+      [username, email]
+    );
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ success: false, error: 'User already exists' });
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+    await client.query(
+      `INSERT INTO users (username, email, password, verified)
+       VALUES ($1, $2, $3, true)`,
+      [username, email, hash]
+    );
+
+    console.log('✅ Registered:', username);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Register error:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
   }
-
-  const hashed = await bcrypt.hash(password, 10);
-  users.push({ username, email, password: hashed });
-  console.log('✅ Registered:', username);
-  res.json({ success: true });
 });
 
 // === LOGIN ===
 app.post('/login', async (req, res) => {
   const { username, email, password } = req.body;
-  const user = users.find(u => u.username === username || u.email === email);
+  const identifier = username || email;
 
-  if (!user) return res.json({ success: false, error: 'User not found' });
-
-  const valid = await bcrypt.compare(password, user.password);
-  if (!valid) return res.json({ success: false, error: 'Invalid password' });
-
-  const token = jwt.sign({ username: user.username }, JWT_SECRET, { expiresIn: '2h' });
-
-  // ✅ Cookie fix for HTTPS (Railway)
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: true,      // <== обязательно для HTTPS
-    sameSite: 'none',  // <== чтобы кука передавалась фронту
-    maxAge: 2 * 60 * 60 * 1000,
-  });
-
-  res.json({ success: true });
-});
-
-// === CHECK AUTH ===
-app.get('/check-auth', (req, res) => {
-  const token = req.cookies.token;
-  if (!token) return res.json({ authenticated: false });
+  if (!identifier || !password)
+    return res.status(400).json({ success: false, error: 'Username/email and password required' });
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    res.json({ authenticated: true, user: decoded });
-  } catch {
-    res.json({ authenticated: false });
+    const result = await client.query(
+      'SELECT * FROM users WHERE username=$1 OR email=$1',
+      [identifier]
+    );
+
+    if (result.rows.length === 0) {
+      console.log('❌ User not found:', identifier);
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    const user = result.rows[0];
+    const valid = await bcrypt.compare(password, user.password);
+
+    if (!valid) {
+      console.log('❌ Invalid password for:', identifier);
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, username: user.username, email: user.email },
+      JWT_SECRET,
+      { expiresIn: '2h' }
+    );
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true, // Railway использует HTTPS
+      sameSite: 'none',
+      maxAge: 2 * 60 * 60 * 1000,
+    });
+
+    console.log('✅ Login success:', identifier);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Login error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
+});
+
+// === HOME ===
+app.get('/', (req, res) => {
+  const token = req.cookies?.token;
+  if (!token) {
+    console.log('🟠 No token — auth page');
+    return res.sendFile(path.join(__dirname, 'auth.html'));
+  }
+
+  const valid = verifyToken(token);
+  if (valid) {
+    console.log('🟢 Valid token — index page');
+    return res.sendFile(path.join(__dirname, 'index.html'));
+  }
+
+  console.log('🔴 Invalid token — auth page');
+  res.sendFile(path.join(__dirname, 'auth.html'));
 });
 
 // === LOGOUT ===
@@ -82,18 +145,12 @@ app.post('/logout', (req, res) => {
   res.json({ success: true });
 });
 
-// === Protected route ===
-app.get('/', (req, res) => {
-  const token = req.cookies.token;
-  if (!token) return res.sendFile(path.join(__dirname, 'public', 'auth.html'));
-
-  try {
-    jwt.verify(token, JWT_SECRET);
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-  } catch {
-    res.sendFile(path.join(__dirname, 'public', 'auth.html'));
-  }
+// === FALLBACK ===
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, 'auth.html'));
 });
 
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log('🚀 Server running on port', PORT));
+// === START ===
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
