@@ -34,7 +34,7 @@ app.use(
 );
 app.use(express.static(__dirname));
 
-// === JWT ===
+// === JWT verify helper ===
 function verifyToken(token) {
   try {
     return jwt.verify(token, JWT_SECRET);
@@ -121,6 +121,24 @@ app.post('/login', async (req, res) => {
     console.error('❌ Login error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
+});
+
+// === CHECK AUTH ===
+app.get('/check-auth', (req, res) => {
+  const token = req.cookies?.token;
+  if (!token) {
+    console.log('🟠 /check-auth → No token');
+    return res.json({ authenticated: false });
+  }
+
+  const decoded = verifyToken(token);
+  if (!decoded) {
+    console.log('🔴 /check-auth → Invalid token');
+    return res.json({ authenticated: false });
+  }
+
+  console.log('🟢 /check-auth → Authenticated as', decoded.username);
+  res.json({ authenticated: true, user: decoded });
 });
 
 // === HOME ===
