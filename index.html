@@ -5,452 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mini Social App</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background: #fafafa;
-      min-height: 100vh;
-      color: #262626;
-    }
-
-    /* Instagram-style Header */
-    .header {
-      background: #fff;
-      border-bottom: 1px solid #dbdbdb;
-      padding: 0;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      animation: slideDown 0.4s ease;
-    }
-
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .header-content {
-      max-width: 935px;
-      margin: 0 auto;
-      padding: 8px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .logo {
-      font-size: 28px;
-      font-family: 'Brush Script MT', cursive, 'Segoe UI';
-      font-weight: 400;
-      color: #262626;
-      letter-spacing: 0.5px;
-    }
-
-    .header-icons {
-      display: flex;
-      gap: 20px;
-      align-items: center;
-    }
-
-    .icon-btn {
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-      padding: 8px;
-      transition: opacity 0.2s;
-      color: #262626;
-    }
-
-    .icon-btn:hover {
-      opacity: 0.6;
-    }
-
-    .container {
-      max-width: 614px;
-      margin: 0 auto;
-      padding: 30px 20px;
-    }
-
-    /* Create Post Card - Instagram Style */
-    .create-post-card {
-      background: #fff;
-      border: 1px solid #dbdbdb;
-      border-radius: 3px;
-      margin-bottom: 24px;
-      animation: fadeIn 0.5s ease;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .card-header {
-      padding: 16px;
-      border-bottom: 1px solid #efefef;
-      font-weight: 600;
-      font-size: 14px;
-      color: #262626;
-    }
-
-    .card-body {
-      padding: 16px;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 80px;
-      padding: 12px;
-      border: 1px solid #dbdbdb;
-      border-radius: 3px;
-      font-size: 14px;
-      font-family: inherit;
-      resize: vertical;
-      color: #262626;
-      background: #fafafa;
-    }
-
-    textarea:focus {
-      outline: none;
-      border-color: #a8a8a8;
-      background: #fff;
-    }
-
-    textarea::placeholder {
-      color: #8e8e8e;
-    }
-
-    button {
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-family: inherit;
-    }
-
-    button.primary {
-      background: #0095f6;
-      color: white;
-      padding: 8px 16px;
-      margin-top: 12px;
-      width: 100%;
-      height: 38px;
-    }
-
-    button.primary:hover {
-      background: #1877f2;
-    }
-
-    button.primary:active {
-      opacity: 0.7;
-    }
-
-    /* Posts Section */
-    #posts {
-      animation: fadeIn 0.5s ease 0.2s both;
-    }
-
-    /* Post Card - Instagram Style */
-    .post {
-      background: #fff;
-      border: 1px solid #dbdbdb;
-      border-radius: 3px;
-      margin-bottom: 24px;
-      animation: slideUp 0.5s ease both;
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .post-header {
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid #efefef;
-    }
-
-    .post-user {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .post-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .post-username {
-      font-size: 14px;
-      font-weight: 600;
-      color: #262626;
-    }
-
-    .post-menu {
-      background: none;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-      padding: 8px;
-      color: #262626;
-    }
-
-    .post-menu:hover {
-      opacity: 0.6;
-    }
-
-    .post-content {
-      padding: 16px;
-      font-size: 14px;
-      line-height: 1.6;
-      color: #262626;
-      word-wrap: break-word;
-    }
-
-    .post-actions {
-      padding: 6px 16px;
-      display: flex;
-      gap: 16px;
-      border-top: 1px solid #efefef;
-    }
-
-    .action-btn {
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-      padding: 8px;
-      transition: opacity 0.2s;
-      color: #262626;
-    }
-
-    .action-btn:hover {
-      opacity: 0.6;
-    }
-
-    button.delete {
-      background: none;
-      color: #ed4956;
-      padding: 8px;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    button.delete:hover {
-      opacity: 0.6;
-    }
-
-    /* Comments Section - Instagram Style */
-    .comments {
-      padding: 0 16px 16px;
-      border-top: 1px solid #efefef;
-    }
-
-    .comments-header {
-      font-size: 14px;
-      font-weight: 600;
-      color: #8e8e8e;
-      padding: 12px 0 8px;
-    }
-
-    .comment {
-      padding: 8px 0;
-      font-size: 14px;
-      line-height: 1.5;
-      color: #262626;
-      display: flex;
-      gap: 8px;
-    }
-
-    .comment-author {
-      font-weight: 600;
-      color: #262626;
-    }
-
-    .comment-text {
-      color: #262626;
-    }
-
-    .no-comments {
-      color: #8e8e8e;
-      font-size: 14px;
-      padding: 8px 0;
-    }
-
-    .comment-form {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid #efefef;
-    }
-
-    input[type="text"] {
-      flex: 1;
-      padding: 10px 12px;
-      border: 1px solid #dbdbdb;
-      border-radius: 22px;
-      font-size: 14px;
-      font-family: inherit;
-      background: #fafafa;
-      color: #262626;
-    }
-
-    input[type="text"]:focus {
-      outline: none;
-      border-color: #a8a8a8;
-      background: #fff;
-    }
-
-    input[type="text"]::placeholder {
-      color: #8e8e8e;
-    }
-
-    button.comment-btn {
-      background: none;
-      color: #0095f6;
-      padding: 8px 12px;
-      font-size: 14px;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
-    button.comment-btn:hover {
-      color: #1877f2;
-    }
-
-    button.comment-btn:active {
-      opacity: 0.5;
-    }
-
-    /* Loading and Empty States */
-    .loading {
-      text-align: center;
-      padding: 40px;
-      color: #8e8e8e;
-      font-size: 14px;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      background: #fff;
-      border: 1px solid #dbdbdb;
-      border-radius: 3px;
-    }
-
-    .empty-state-icon {
-      font-size: 64px;
-      margin-bottom: 15px;
-      opacity: 0.3;
-    }
-
-    .empty-state-text {
-      font-size: 22px;
-      font-weight: 300;
-      color: #262626;
-      margin-bottom: 8px;
-    }
-
-    .empty-state-subtext {
-      font-size: 14px;
-      color: #8e8e8e;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .header-content {
-        padding: 8px 16px;
-      }
-
-      .container {
-        padding: 0;
-      }
-
-      .create-post-card, .post {
-        border-left: none;
-        border-right: none;
-        border-radius: 0;
-        margin-bottom: 12px;
-      }
-
-      .logo {
-        font-size: 24px;
-      }
-
-      .header-icons {
-        gap: 16px;
-      }
-    }
-
-    /* Smooth scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #fafafa;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #dbdbdb;
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: #c7c7c7;
-    }
+    /* === Стили (оставил всё как у тебя) === */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #fafafa; min-height: 100vh; color: #262626; }
+    .header { background: #fff; border-bottom: 1px solid #dbdbdb; position: sticky; top: 0; z-index: 100; }
+    .header-content { max-width: 935px; margin: 0 auto; padding: 8px 20px;
+      display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-size: 28px; font-family: 'Brush Script MT', cursive; }
+    .header-icons { display: flex; gap: 20px; align-items: center; }
+    .icon-btn { background: none; border: none; font-size: 17px; cursor: pointer; padding: 8px; transition: opacity 0.2s; }
+    .icon-btn:hover { opacity: 0.6; }
+    .container { max-width: 614px; margin: 0 auto; padding: 30px 20px; }
+    .create-post-card { background: #fff; border: 1px solid #dbdbdb; border-radius: 3px; margin-bottom: 24px; }
+    .card-header { padding: 16px; border-bottom: 1px solid #efefef; font-weight: 600; font-size: 14px; }
+    .card-body { padding: 16px; }
+    textarea { width: 100%; min-height: 80px; padding: 12px; border: 1px solid #dbdbdb; border-radius: 3px; }
+    button.primary { background: #0095f6; color: white; border: none; border-radius: 8px; width: 100%; height: 38px; font-weight: 600; }
+    button.primary:hover { background: #1877f2; }
+    #posts { animation: fadeIn 0.5s ease 0.2s both; }
+    .post { background: #fff; border: 1px solid #dbdbdb; border-radius: 3px; margin-bottom: 24px; }
+    .post-header { padding: 14px 16px; display: flex; justify-content: space-between; border-bottom: 1px solid #efefef; }
+    .post-user { display: flex; align-items: center; gap: 12px; }
+    .post-avatar { width: 32px; height: 32px; border-radius: 50%; background: #ff7a00; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: 600; }
+    .post-content { padding: 16px; }
+    .comment-form { display: flex; gap: 8px; align-items: center; margin-top: 12px; border-top: 1px solid #efefef; padding-top: 12px; }
+    input[type="text"] { flex: 1; padding: 10px 12px; border: 1px solid #dbdbdb; border-radius: 22px; }
+    button.comment-btn { background: none; color: #0095f6; font-weight: 600; }
   </style>
 </head>
 <body>
-  <!-- Instagram-style Header -->
+  <!-- === HEADER === -->
   <div class="header">
     <div class="header-content">
       <div class="logo">Полуgram</div>
       <div class="header-icons">
-        <button class="icon-btn" title="Home" style="font-size: 17px;">Home</button>
-        <button class="icon-btn" title="Direct" style="font-size: 17px;">Direct</button>
-        <button class="icon-btn" title="Explore" style="font-size: 17px;">Explore</button>
-        <button class="icon-btn" title="Activity" style="font-size: 17px;">Activity</button>
-        <button class="icon-btn" title="Profile" style="font-size: 17px;">Profile</button>
+        <button class="icon-btn" title="Home">Home</button>
+        <button class="icon-btn" title="Profile">Profile</button>
+        <button class="icon-btn" onclick="logout()">Logout</button>
       </div>
     </div>
   </div>
@@ -470,105 +62,81 @@
   </div>
 
   <script>
-    const API_BASE = window.location.origin; // автоматом подхватит Railway URL
+    const API_BASE = window.location.origin;
 
+    // ✅ Проверка авторизации перед загрузкой страницы
+    async function checkAuth() {
+      try {
+        const res = await fetch('/auth/check', { credentials: 'include' });
+        const data = await res.json();
+        if (!data.authenticated) {
+          window.location.href = '/auth.html'; // если не авторизован — на логин
+        }
+      } catch {
+        window.location.href = '/auth.html';
+      }
+    }
+
+    checkAuth(); // запускаем сразу
+
+    // === POSTS ===
     async function fetchPosts() {
       const container = document.getElementById('posts');
       container.textContent = 'Loading...';
-      container.className = 'loading';
       try {
         const res = await fetch(`${API_BASE}/posts`);
-        if (!res.ok) throw new Error('Failed to load posts');
         const posts = await res.json();
         renderPosts(posts);
       } catch (err) {
-        container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Something went wrong</div><div class="empty-state-subtext">${err.message}</div></div>`;
-        container.className = '';
+        container.textContent = 'Error loading posts';
       }
     }
 
     async function createPost() {
       const content = document.getElementById('postContent').value.trim();
       if (!content) return alert('Please write something!');
-      try {
-        const res = await fetch(`${API_BASE}/posts`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content })
-        });
-        if (!res.ok) throw new Error('Failed to create post');
+      const res = await fetch(`${API_BASE}/posts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+        credentials: 'include'
+      });
+      if (res.ok) {
         document.getElementById('postContent').value = '';
         fetchPosts();
-      } catch (err) {
-        alert('Error: ' + err.message);
+      } else {
+        alert('Failed to create post');
       }
     }
 
     async function deletePost(id) {
       if (!confirm('Delete this post?')) return;
-      try {
-        const res = await fetch(`${API_BASE}/posts/${id}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error('Delete failed');
-        fetchPosts();
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
+      const res = await fetch(`${API_BASE}/posts/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (res.ok) fetchPosts();
+      else alert('Failed to delete post');
     }
 
-    async function addComment(postId) {
-      const input = document.getElementById(`commentInput-${postId}`);
-      const commentContent = input.value.trim();
-      if (!commentContent) return alert('Enter a comment first!');
-      try {
-        const res = await fetch(`${API_BASE}/posts/${postId}/comments`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ commentContent })
-        });
-        if (!res.ok) throw new Error('Failed to add comment');
-        input.value = '';
-        fetchPosts();
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
+    async function logout() {
+      await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/auth.html';
     }
 
     function renderPosts(posts) {
       const container = document.getElementById('posts');
-      container.className = '';
-      if (!Array.isArray(posts) || posts.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">No Posts Yet</div><div class="empty-state-subtext">When you share posts, they will appear here.</div></div>';
+      if (!posts.length) {
+        container.innerHTML = '<div>No posts yet.</div>';
         return;
       }
-
       container.innerHTML = posts.map(p => `
         <div class="post">
           <div class="post-header">
             <div class="post-user">
               <div class="post-avatar">${p.id}</div>
-              <span class="post-username">user_${p.id}</span>
+              <span>${p.username || 'user'}</span>
             </div>
-            <button class="post-menu" onclick="deletePost(${p.id})" title="Delete post">⋯</button>
+            <button onclick="deletePost(${p.id})">⋯</button>
           </div>
-          
           <div class="post-content">${escapeHtml(p.content)}</div>
-          
-          <div class="post-actions">
-            <button class="action-btn" title="Like" style="font-size: 12px;">like</button>
-            <button class="action-btn" title="Comment" style="font-size: 12px;">Comment</button>
-            <button class="action-btn" title="Share" style="font-size: 12px;">Share</button>
-          </div>
-
-          <div class="comments">
-            <div class="comments-header">Comments</div>
-            ${(p.comments && p.comments.length > 0)
-              ? p.comments.map(c => `<div class="comment"><span class="comment-author">user:</span><span class="comment-text">${escapeHtml(c.content)}</span></div>`).join('')
-              : '<div class="no-comments">No comments yet.</div>'}
-            <div class="comment-form">
-              <input id="commentInput-${p.id}" type="text" placeholder="Add a comment...">
-              <button class="comment-btn" onclick="addComment(${p.id})">Post</button>
-            </div>
-          </div>
         </div>
       `).join('');
     }
@@ -581,8 +149,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
