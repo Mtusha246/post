@@ -5,13 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mini Social App</title>
   <style>
-    /* === Стили (оставил всё как у тебя) === */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background: #fafafa; min-height: 100vh; color: #262626; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #fafafa; min-height: 100vh; color: #262626; }
     .header { background: #fff; border-bottom: 1px solid #dbdbdb; position: sticky; top: 0; z-index: 100; }
-    .header-content { max-width: 935px; margin: 0 auto; padding: 8px 20px;
-      display: flex; align-items: center; justify-content: space-between; }
+    .header-content { max-width: 935px; margin: 0 auto; padding: 8px 20px; display: flex; align-items: center; justify-content: space-between; }
     .logo { font-size: 28px; font-family: 'Brush Script MT', cursive; }
     .header-icons { display: flex; gap: 20px; align-items: center; }
     .icon-btn { background: none; border: none; font-size: 17px; cursor: pointer; padding: 8px; transition: opacity 0.2s; }
@@ -35,7 +32,6 @@
   </style>
 </head>
 <body>
-  <!-- === HEADER === -->
   <div class="header">
     <div class="header-content">
       <div class="logo">Полуgram</div>
@@ -48,7 +44,6 @@
   </div>
 
   <div class="container">
-    <!-- Create Post Section -->
     <div class="create-post-card">
       <div class="card-header">Create New Post</div>
       <div class="card-body">
@@ -57,7 +52,6 @@
       </div>
     </div>
 
-    <!-- Posts Section -->
     <div id="posts" class="loading">Loading posts...</div>
   </div>
 
@@ -67,24 +61,29 @@
     // ✅ Проверка авторизации перед загрузкой страницы
     async function checkAuth() {
       try {
-        const res = await fetch('/auth/check', { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/check-auth`, { credentials: 'include' });
         const data = await res.json();
+        console.log('Auth check →', data);
+
         if (!data.authenticated) {
-          window.location.href = '/auth.html'; // если не авторизован — на логин
+          console.log('🚫 Not authenticated, redirecting to /auth.html');
+          window.location.href = '/auth.html';
+        } else {
+          console.log('✅ Authenticated as', data.user);
         }
-      } catch {
+      } catch (err) {
+        console.error('Auth check error', err);
         window.location.href = '/auth.html';
       }
     }
 
-    checkAuth(); // запускаем сразу
+    checkAuth().then(fetchPosts);
 
-    // === POSTS ===
     async function fetchPosts() {
       const container = document.getElementById('posts');
       container.textContent = 'Loading...';
       try {
-        const res = await fetch(`${API_BASE}/posts`);
+        const res = await fetch(`${API_BASE}/posts`, { credentials: 'include' });
         const posts = await res.json();
         renderPosts(posts);
       } catch (err) {
@@ -117,7 +116,7 @@
     }
 
     async function logout() {
-      await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
+      await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
       window.location.href = '/auth.html';
     }
 
@@ -141,11 +140,10 @@
       `).join('');
     }
 
-    function escapeHtml(str) {
-      return str.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, m => map[m]);
     }
-
-    fetchPosts();
   </script>
 </body>
 </html>
