@@ -60,6 +60,7 @@
       const identifier = document.getElementById('loginIdentifier').value;
       const password = document.getElementById('loginPassword').value;
 
+      console.log('🔹 Sending login request...');
       const res = await fetch('/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -67,10 +68,13 @@
         body: JSON.stringify({ username: identifier, email: identifier, password })
       });
 
+      console.log('🔹 Login response status:', res.status);
       const data = await res.json();
+      console.log('🔹 Response JSON:', data);
+
       if (data.success) {
-        alert('✅ Login successful!');
-        window.location.href = '/';
+        alert('✅ Login successful! Redirecting...');
+        setTimeout(() => (window.location.href = '/'), 800);
       } else {
         alert('❌ ' + (data.error || data.message || 'Login failed'));
       }
@@ -83,6 +87,7 @@
       const email = regEmail.value;
       const password = regPassword.value;
 
+      console.log('🔹 Sending register request...');
       const res = await fetch('/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -91,6 +96,8 @@
       });
 
       const data = await res.json();
+      console.log('🔹 Register response:', data);
+
       if (data.success) {
         alert('🎉 Registration successful! You can now login.');
         loginTab.click();
