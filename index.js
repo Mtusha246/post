@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: true,
+    origin: 'https://post-production-71c1.up.railway.app', // фиксированное значение
     credentials: true,
   })
 );
@@ -106,11 +106,12 @@ app.post('/login', async (req, res) => {
       { expiresIn: '2h' }
     );
 
+    // === Вот тут ключ — фиксируем правильные cookie настройки ===
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      path: '/',
+      secure: true,
+      sameSite: 'None',
+      path: '/', // 👈 обязательно
       maxAge: 2 * 60 * 60 * 1000,
     });
 
@@ -124,9 +125,11 @@ app.post('/login', async (req, res) => {
 
 // === HOME ===
 app.get('/', (req, res) => {
+  console.log('Cookies received:', req.cookies);
+
   const token = req.cookies?.token;
   if (!token) {
-    console.log('🟠 No token — auth page');
+    console.log('🟠 No token — redirect to auth');
     return res.sendFile(path.join(__dirname, 'auth.html'));
   }
 
@@ -136,13 +139,17 @@ app.get('/', (req, res) => {
     return res.sendFile(path.join(__dirname, 'index.html'));
   }
 
-  console.log('🔴 Invalid token — auth page');
+  console.log('🔴 Invalid token — redirect to auth');
   res.sendFile(path.join(__dirname, 'auth.html'));
 });
 
 // === LOGOUT ===
 app.post('/logout', (req, res) => {
-  res.clearCookie('token', { sameSite: 'none', secure: true, path: '/' });
+  res.clearCookie('token', {
+    sameSite: 'None',
+    secure: true,
+    path: '/',
+  });
   res.json({ success: true });
 });
 
@@ -151,7 +158,6 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'auth.html'));
 });
 
-// === START ===
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
