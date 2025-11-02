@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const cookieParser = require('cookie-parser');
+const { verifyToken } = require('./authMiddleware');
 
 const postsRouter = require('./posts');
 const commentsRouter = require('./comments');
@@ -18,6 +20,7 @@ app.use((req, res, next) => {
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'] }));
 
 // ---- Serve static files (CSS, JS, images) ----
@@ -32,9 +35,24 @@ app.use('/posts', postsRouter);
 app.use('/comments', commentsRouter);
 app.use('/users', usersRouter);
 
-// --- Default route: если нет токена — показываем login.html ---
+// --- Default route: если нет токена — показываем auth.html ---
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'login.html')); // 👈 лежит прямо в корне
+  const token = req.cookies?.token;
+
+  if (!token) {
+    // если нет токена — сразу на страницу логина
+    return res.sendFile(path.join(__dirname, 'auth.html'));
+  }
+
+  try {
+    // проверяем токен
+    verifyToken(token);
+    // если всё норм — показываем главную страницу
+    res.sendFile(path.join(__dirname, 'index.html'));
+  } catch {
+    // если токен недействителен — снова логин
+    res.sendFile(path.join(__dirname, 'auth.html'));
+  }
 });
 
 // --- Fallback для SPA ---
