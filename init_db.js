@@ -15,14 +15,15 @@ async function init() {
     // === USERS ===
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
-         id SERIAL PRIMARY KEY,
-         username TEXT UNIQUE NOT NULL,
-         email TEXT UNIQUE,
-         password TEXT NOT NULL,
-         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-     );
-  `);
-
+        id SERIAL PRIMARY KEY,
+        username TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        verified BOOLEAN DEFAULT false,
+        verification_token TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
 
     // === POSTS ===
     await client.query(`
@@ -45,7 +46,7 @@ async function init() {
       );
     `);
 
-    console.log('✅ Tables created successfully');
+    console.log('✅ Tables created successfully (users + posts + comments)');
   } catch (err) {
     console.error('❌ Error initializing DB:', err);
   } finally {
