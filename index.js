@@ -5,7 +5,7 @@ const path = require('path');
 const postsRouter = require('./posts');
 const commentsRouter = require('./comments');
 const usersRouter = require('./users');
-const authRouter = require('./auth'); // 👈 добавили авторизацию
+const authRouter = require('./auth');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -21,35 +21,39 @@ app.use(express.json());
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'] }));
 
 // ---- Serve static files first (css/js/images etc) ----
-app.use(express.static(__dirname));
+app.use(express.static(__dirname + '/public')); // 👈 теперь все HTML лежат в /public
 
 // optional: silence browser favicon requests (prevents 404 noise)
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-// --- API (keep API routes after static so assets still served) ---
-app.use('/auth', authRouter); // 👈 маршруты регистрации и логина
+// --- API ---
+app.use('/auth', authRouter);
 app.use('/posts', postsRouter);
 app.use('/comments', commentsRouter);
 app.use('/users', usersRouter);
 
-// --- Fallback for SPA routes (only when not an API route) ---
+// --- Default route: если нет токена — показываем login.html ---
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// --- Fallback for SPA routes (frontend navigation) ---
 app.use((req, res, next) => {
-  // if request looks like api -> let it be handled above (or return 404)
   if (
     req.originalUrl.startsWith('/posts') ||
     req.originalUrl.startsWith('/comments') ||
     req.originalUrl.startsWith('/users') ||
     req.originalUrl.startsWith('/api') ||
-    req.originalUrl.startsWith('/auth') // 👈 добавлено
+    req.originalUrl.startsWith('/auth')
   ) {
     return res.status(404).json({ error: 'API route not found' });
   }
 
-  // otherwise return index.html for frontend SPA routing
-  res.sendFile(path.join(__dirname, 'index.html'));
+  // otherwise return main app
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ---- central error handler (so async errors return 500 and log) ----
+// ---- central error handler ----
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err && err.stack ? err.stack : err);
   res.status(500).json({ error: 'Internal Server Error' });
