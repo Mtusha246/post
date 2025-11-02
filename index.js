@@ -1,3 +1,4 @@
+// === server.js ===
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -18,14 +19,18 @@ const client = new Client({
   ssl: { rejectUnauthorized: false },
 });
 
-client.connect().then(() => console.log('✅ Connected to Railway DB')).catch(console.error);
+client
+  .connect()
+  .then(() => console.log('✅ Connected to Railway DB'))
+  .catch(console.error);
 
 // === Middleware ===
 app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: '*',
+    origin: true, // 🔥 разрешает текущий origin
+    credentials: true, // 🔥 разрешает cookie
     methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
   })
 );
@@ -50,7 +55,9 @@ function verifyToken(token) {
 app.post('/login', async (req, res) => {
   const { username, email, password } = req.body;
   if ((!username && !email) || !password)
-    return res.status(400).json({ error: 'Username/email and password required' });
+    return res
+      .status(400)
+      .json({ error: 'Username/email and password required' });
 
   try {
     const identifier = username || email;
@@ -61,7 +68,9 @@ app.post('/login', async (req, res) => {
 
     if (result.rows.length === 0) {
       console.log('❌ User not found:', identifier);
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      return res
+        .status(401)
+        .json({ success: false, message: 'Invalid credentials' });
     }
 
     const user = result.rows[0];
@@ -70,12 +79,16 @@ app.post('/login', async (req, res) => {
 
     if (!valid) {
       console.log('❌ Invalid password for:', identifier);
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      return res
+        .status(401)
+        .json({ success: false, message: 'Invalid credentials' });
     }
 
     if (!user.verified) {
       console.log('⚠️ User not verified:', identifier);
-      return res.status(403).json({ success: false, message: 'Email not verified' });
+      return res
+        .status(403)
+        .json({ success: false, message: 'Email not verified' });
     }
 
     const token = jwt.sign(
@@ -84,10 +97,11 @@ app.post('/login', async (req, res) => {
       { expiresIn: '2h' }
     );
 
+    // === сохраняем cookie (работает на Railway HTTPS) ===
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false, // true если HTTPS
-      sameSite: 'lax',
+      secure: true, // 🔥 обязательно для Railway
+      sameSite: 'none', // 🔥 чтобы cookie передавались
       maxAge: 2 * 60 * 60 * 1000,
     });
 
@@ -119,7 +133,7 @@ app.get('/', (req, res) => {
 
 // === logout ===
 app.post('/logout', (req, res) => {
-  res.clearCookie('token');
+  res.clearCookie('token', { sameSite: 'none', secure: true });
   res.json({ success: true });
 });
 
