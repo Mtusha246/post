@@ -12,6 +12,7 @@
     form.active { display: block; }
     input { display: block; margin: 10px auto; padding: 8px; width: 250px; border: 1px solid #ccc; border-radius: 4px; }
     button[type="submit"] { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    #cookieStatus { margin-top: 20px; font-size: 14px; color: #333; }
   </style>
 </head>
 <body>
@@ -35,11 +36,14 @@
     <button type="submit">Register</button>
   </form>
 
+  <div id="cookieStatus">Checking token...</div>
+
   <script>
     const loginTab = document.getElementById('loginTab');
     const registerTab = document.getElementById('registerTab');
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
+    const cookieStatus = document.getElementById('cookieStatus');
 
     loginTab.onclick = () => {
       loginForm.classList.add('active');
@@ -54,6 +58,13 @@
       registerTab.classList.add('active');
       loginTab.classList.remove('active');
     };
+
+    // === Check cookies ===
+    function checkCookies() {
+      const hasToken = document.cookie.includes('token=');
+      cookieStatus.textContent = hasToken ? '✅ Token detected — you are logged in' : '❌ No token detected — please log in';
+    }
+    checkCookies();
 
     // === LOGIN ===
     loginForm.onsubmit = async (e) => {
@@ -71,7 +82,10 @@
       const data = await res.json();
       if (data.success) {
         alert('✅ Login successful!');
-        setTimeout(() => window.location.href = '/', 500);
+        setTimeout(() => {
+          checkCookies();
+          window.location.href = '/';
+        }, 800);
       } else {
         alert('❌ ' + (data.error || 'Login failed'));
       }
