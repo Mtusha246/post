@@ -18,14 +18,17 @@ const client = new Client({
   ssl: { rejectUnauthorized: false },
 });
 
-client.connect().then(() => console.log('✅ Connected to Railway DB')).catch(console.error);
+client
+  .connect()
+  .then(() => console.log('✅ Connected to Railway DB'))
+  .catch(console.error);
 
 // === Middleware ===
 app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: true,
+    origin: 'https://post-production-71c1.up.railway.app', // 🚀 твой Railway-домен
     credentials: true,
   })
 );
@@ -74,7 +77,9 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
   const { username, email, password } = req.body;
   if ((!username && !email) || !password)
-    return res.status(400).json({ success: false, error: 'Username/email and password required' });
+    return res
+      .status(400)
+      .json({ success: false, error: 'Username/email and password required' });
 
   try {
     const identifier = username || email;
@@ -107,10 +112,11 @@ app.post('/login', async (req, res) => {
       { expiresIn: '2h' }
     );
 
+    // 🚀 Главное исправление — cookie теперь работает на HTTPS
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false, // ставь true если HTTPS
-      sameSite: 'lax',
+      secure: true, // Railway HTTPS → обязательно true
+      sameSite: 'none',
       maxAge: 2 * 60 * 60 * 1000,
     });
 
@@ -124,25 +130,33 @@ app.post('/login', async (req, res) => {
 
 // === Главная страница ===
 app.get('/', (req, res) => {
+  console.log('🍪 COOKIE:', req.cookies);
   const token = req.cookies?.token;
+
   if (!token) {
     console.log('🟠 Нет токена — показываю auth.html');
     return res.sendFile(path.join(__dirname, 'auth.html'));
   }
 
   const valid = verifyToken(token);
+  console.log('🔹 JWT verify:', valid);
+
   if (valid) {
     console.log('🟢 Валидный токен — показываю index.html');
     return res.sendFile(path.join(__dirname, 'index.html'));
   }
 
   console.log('🔴 Невалидный токен — показываю auth.html');
-    res.sendFile(path.join(__dirname, 'auth.html'));
+  res.sendFile(path.join(__dirname, 'auth.html'));
 });
 
 // === logout ===
 app.post('/logout', (req, res) => {
-  res.clearCookie('token');
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+  });
   res.json({ success: true });
 });
 
