@@ -108,8 +108,9 @@ app.post('/login', async (req, res) => {
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: true, // Railway использует HTTPS
-      sameSite: 'none',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/',
       maxAge: 2 * 60 * 60 * 1000,
     });
 
@@ -141,7 +142,7 @@ app.get('/', (req, res) => {
 
 // === LOGOUT ===
 app.post('/logout', (req, res) => {
-  res.clearCookie('token', { sameSite: 'none', secure: true });
+  res.clearCookie('token', { sameSite: 'none', secure: true, path: '/' });
   res.json({ success: true });
 });
 
