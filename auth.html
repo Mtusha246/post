@@ -47,6 +47,7 @@
       loginTab.classList.add('active');
       registerTab.classList.remove('active');
     };
+
     registerTab.onclick = () => {
       registerForm.classList.add('active');
       loginForm.classList.remove('active');
@@ -60,23 +61,19 @@
       const identifier = document.getElementById('loginIdentifier').value;
       const password = document.getElementById('loginPassword').value;
 
-      console.log('🔹 Sending login request...');
       const res = await fetch('/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        credentials: 'include', // ✅ обязательно для куки
         body: JSON.stringify({ username: identifier, email: identifier, password })
       });
 
-      console.log('🔹 Login response status:', res.status);
       const data = await res.json();
-      console.log('🔹 Response JSON:', data);
-
       if (data.success) {
-        alert('✅ Login successful! Redirecting...');
-        setTimeout(() => (window.location.href = '/'), 800);
+        alert('✅ Login successful!');
+        setTimeout(() => window.location.href = '/', 500);
       } else {
-        alert('❌ ' + (data.error || data.message || 'Login failed'));
+        alert('❌ ' + (data.error || 'Login failed'));
       }
     };
 
@@ -87,7 +84,6 @@
       const email = regEmail.value;
       const password = regPassword.value;
 
-      console.log('🔹 Sending register request...');
       const res = await fetch('/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -96,10 +92,8 @@
       });
 
       const data = await res.json();
-      console.log('🔹 Register response:', data);
-
       if (data.success) {
-        alert('🎉 Registration successful! You can now login.');
+        alert('🎉 Registration successful! Now login.');
         loginTab.click();
       } else {
         alert('❌ ' + (data.error || 'Registration failed'));
