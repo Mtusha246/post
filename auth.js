@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { Client } = require('pg');
 
-const router = express.Router(); // 👈 вот этой строки у тебя не хватает!
+const router = express.Router();
 
 // === подключение к PostgreSQL ===
 const client = new Client({
@@ -47,39 +47,49 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// === логин ===
+// === логин по USERNAME ===
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password)
-    return res.status(400).json({ error: 'Email and password required' });
+  const { username, password } = req.body;
+
+  if (!username || !password)
+    return res.status(400).json({ error: 'Username and password required' });
 
   try {
-    const result = await client.query('SELECT * FROM users WHERE email=$1', [email]);
-    if (result.rows.length === 0)
+    const result = await client.query('SELECT * FROM users WHERE username=$1', [username]);
+    if (result.rows.length === 0) {
+      console.log('⚠️  User not found for username:', username);
       return res.status(400).json({ error: 'User not found' });
+    }
 
     const user = result.rows[0];
+    console.log('🔎 User found in DB:', user);
+
     const valid = await bcrypt.compare(password, user.password);
+    console.log('🔵 bcrypt.compare result:', valid);
+
     if (!valid)
       return res.status(401).json({ error: 'Invalid password' });
 
-    if (!user.verified)
+    if (!user.verified) {
+      console.log('🚫 User not verified');
       return res.status(403).json({ error: 'Email not verified' });
+    }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email, username: user.username },
+      { id: user.id, username: user.username },
       JWT_SECRET,
       { expiresIn: '2h' }
     );
 
-    // 👇 ставим cookie с токеном
+    // === ставим cookie с токеном ===
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false, // поставь true, если HTTPS
+      secure: false, // поставь true, если у тебя HTTPS
       sameSite: 'lax',
       maxAge: 2 * 60 * 60 * 1000,
     });
 
+    console.log('✅ Login successful for user:', username);
     res.json({ success: true, message: 'Login successful' });
   } catch (err) {
     console.error('❌ Login error:', err);
