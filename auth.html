@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Login / Register</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 60px; }
+    .tabs { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; }
+    .tabs button { padding: 10px 20px; cursor: pointer; }
+    form { display: none; }
+    form.active { display: block; }
+    input { display: block; margin: 10px auto; padding: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Welcome!</h1>
+  <div class="tabs">
+    <button id="loginTab">Login</button>
+    <button id="registerTab">Register</button>
+  </div>
+
+  <form id="loginForm" class="active">
+    <input type="text" id="loginEmail" placeholder="Email" required>
+    <input type="password" id="loginPassword" placeholder="Password" required>
+    <button type="submit">Login</button>
+  </form>
+
+  <form id="registerForm">
+    <input type="text" id="regUsername" placeholder="Username" required>
+    <input type="email" id="regEmail" placeholder="Email" required>
+    <input type="password" id="regPassword" placeholder="Password" required>
+    <button type="submit">Register</button>
+  </form>
+
+  <script>
+    // переключатель вкладок
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+
+    loginTab.onclick = () => {
+      loginForm.classList.add('active');
+      registerForm.classList.remove('active');
+    };
+    registerTab.onclick = () => {
+      registerForm.classList.add('active');
+      loginForm.classList.remove('active');
+    };
+
+    // === ЛОГИН ===
+    loginForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const email = loginEmail.value;
+      const password = loginPassword.value;
+      const res = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        window.location.href = '/';
+      } else {
+        alert(data.error || 'Login failed');
+      }
+    };
+
+    // === РЕГИСТРАЦИЯ ===
+    registerForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const username = regUsername.value;
+      const email = regEmail.value;
+      const password = regPassword.value;
+      const res = await fetch('/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Registered successfully! Now login.');
+        loginTab.click();
+      } else {
+        alert(data.error || 'Registration failed');
+      }
+    };
+  </script>
+</body>
+</html>
