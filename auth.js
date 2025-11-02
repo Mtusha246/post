@@ -59,32 +59,42 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Username/email and password required' });
 
   try {
-    const identifier = username || email;
+    console.log('🧠 Login attempt:', { username, email, password });
 
-    // ищем по username или email
     const result = await client.query(
-      'SELECT * FROM users WHERE username=$1 OR email=$1',
-      [identifier]
+      'SELECT * FROM users WHERE username=$1 OR email=$2',
+      [username, email]
     );
 
     if (result.rows.length === 0) {
-      console.log('❌ User not found for:', identifier);
+      console.log('❌ User not found for:', username || email);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const user = result.rows[0];
-    console.log('🔎 Found user:', user.username, 'verified:', user.verified);
+    console.log('🔎 Found user in DB:', user.username);
+    console.log('🧩 Stored hash:', user.password);
 
-    const valid = await bcrypt.compare(password, user.password);
+    // === проверка bcrypt ===
+    let valid = false;
+    try {
+      valid = await bcrypt.compare(password, user.password);
+    } catch (err) {
+      console.log('⚠️ bcrypt compare error, trying manual normalize:', err);
+      // если вдруг bcrypt не поддерживает старый формат "$2a$" — заменим на "$2b$"
+      const fixedHash = user.password.replace(/^\$2a\$/, '$2b$');
+      valid = await bcrypt.compare(password, fixedHash);
+    }
+
     console.log('🔵 Password valid?', valid);
 
     if (!valid) {
-      console.log('❌ Invalid password for:', identifier);
+      console.log('❌ Invalid password for:', username || email);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     if (!user.verified) {
-      console.log('⚠️ User not verified:', identifier);
+      console.log('⚠️ User not verified:', username || email);
       return res.status(403).json({ error: 'Email not verified' });
     }
 
@@ -101,7 +111,7 @@ router.post('/login', async (req, res) => {
       maxAge: 2 * 60 * 60 * 1000,
     });
 
-    console.log('✅ Login success for:', identifier);
+    console.log('✅ Login success for:', username || email);
     res.json({ success: true, message: 'Login successful' });
   } catch (err) {
     console.error('❌ Login error:', err);
