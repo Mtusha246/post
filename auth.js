@@ -1,4 +1,3 @@
-// auth.js
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -35,12 +34,11 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Email or username already registered' });
 
     const hash = await bcrypt.hash(password, 10);
-    const verificationToken = Math.random().toString(36).substring(2, 15);
 
     await client.query(
-      `INSERT INTO users (username, email, password, verified, verification_token)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [username, email, hash, true, verificationToken]
+      `INSERT INTO users (username, email, password, verified)
+       VALUES ($1, $2, $3, $4)`,
+      [username, email, hash, true]
     );
 
     console.log('✅ Registered new user:', username);
@@ -51,7 +49,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// === логин по USERNAME или EMAIL ===
+// === логин ===
 router.post('/login', async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -59,44 +57,20 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Username/email and password required' });
 
   try {
-    console.log('🧠 Login attempt:', { username, email, password });
+    console.log('🧠 Login attempt:', { username, email });
 
     const result = await client.query(
       'SELECT * FROM users WHERE username=$1 OR email=$2',
       [username, email]
     );
 
-    if (result.rows.length === 0) {
-      console.log('❌ User not found for:', username || email);
+    if (result.rows.length === 0)
       return res.status(401).json({ error: 'Invalid credentials' });
-    }
 
     const user = result.rows[0];
-    console.log('🔎 Found user in DB:', user.username);
-    console.log('🧩 Stored hash:', user.password);
+    const valid = await bcrypt.compare(password, user.password);
 
-    // === проверка bcrypt ===
-    let valid = false;
-    try {
-      valid = await bcrypt.compare(password, user.password);
-    } catch (err) {
-      console.log('⚠️ bcrypt compare error, trying manual normalize:', err);
-      // если вдруг bcrypt не поддерживает старый формат "$2a$" — заменим на "$2b$"
-      const fixedHash = user.password.replace(/^\$2a\$/, '$2b$');
-      valid = await bcrypt.compare(password, fixedHash);
-    }
-
-    console.log('🔵 Password valid?', valid);
-
-    if (!valid) {
-      console.log('❌ Invalid password for:', username || email);
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    if (!user.verified) {
-      console.log('⚠️ User not verified:', username || email);
-      return res.status(403).json({ error: 'Email not verified' });
-    }
+    if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign(
       { id: user.id, email: user.email, username: user.username },
@@ -106,17 +80,42 @@ router.post('/login', async (req, res) => {
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false, // true если https
+      secure: process.env.NODE_ENV === 'production', // в продакшене только по HTTPS
       sameSite: 'lax',
-      maxAge: 2 * 60 * 60 * 1000,
+      path: '/',
+      maxAge: 2 * 60 * 60 * 1000, // 2 часа
     });
 
-    console.log('✅ Login success for:', username || email);
-    res.json({ success: true, message: 'Login successful' });
+    console.log('✅ Login success:', user.username);
+    res.json({ success: true, user: { username: user.username, email: user.email } });
   } catch (err) {
     console.error('❌ Login error:', err);
     res.status(500).json({ error: 'Server error' });
   }
+});
+
+// === проверка токена ===
+router.get('/check-auth', (req, res) => {
+  const token = req.cookies.token;
+  console.log('🍪 Cookies received:', req.cookies);
+
+  if (!token) return res.json({ authenticated: false });
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    console.log('🔑 Token valid for:', decoded.username);
+    res.json({ authenticated: true, user: decoded });
+  } catch (err) {
+    console.log('❌ Invalid token:', err.message);
+    res.json({ authenticated: false });
+  }
+});
+
+// === логаут ===
+router.post('/logout', (req, res) => {
+  res.clearCookie('token', { path: '/' });
+  console.log('🚪 Logged out');
+  res.json({ success: true });
 });
 
 module.exports = router;
