@@ -1,3 +1,4 @@
+// === auth.js ===
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -21,6 +22,24 @@ client.connect().then(() => console.log('✅ PostgreSQL connected'));
 // === секрет для JWT ===
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret123';
 
+// === Middleware для проверки токена ===
+function authMiddleware(req, res, next) {
+  const token = req.cookies?.token;
+  if (!token) {
+    console.log('🚫 Нет токена в cookies');
+    return res.status(401).json({ error: 'Missing token' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded; // теперь в req.user есть id, username, email
+    next();
+  } catch (err) {
+    console.log('❌ Ошибка проверки токена:', err.message);
+    return res.status(403).json({ error: 'Invalid or expired token' });
+  }
+}
+
 // === регистрация ===
 app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
@@ -37,7 +56,6 @@ app.post('/register', async (req, res) => {
     if (existing.rows.length > 0)
       return res.status(400).json({ error: 'Email or username already registered' });
 
-    // ✅ хэшируем пароль перед сохранением
     const hash = await bcrypt.hash(password, 10);
 
     await client.query(
@@ -73,25 +91,23 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
 
     const user = result.rows[0];
-
-    // ✅ сравниваем пароль с хэшем
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
 
-    // ✅ создаём токен для конкретного пользователя
+    // создаём токен
     const token = jwt.sign(
       { id: user.id, email: user.email, username: user.username },
       JWT_SECRET,
       { expiresIn: '2h' }
     );
 
-    // ✅ сохраняем токен в cookie
+    // сохраняем токен в cookie
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 2 * 60 * 60 * 1000, // 2 часа
+      maxAge: 2 * 60 * 60 * 1000,
     });
 
     console.log('✅ Login success:', user.username);
@@ -104,7 +120,7 @@ app.post('/login', async (req, res) => {
 
 // === проверка токена ===
 app.get('/check-auth', (req, res) => {
-  const token = req.cookies.token;
+  const token = req.cookies?.token;
   console.log('🍪 Cookies received:', req.cookies);
 
   if (!token) return res.json({ authenticated: false });
@@ -126,6 +142,11 @@ app.post('/logout', (req, res) => {
   res.json({ success: true });
 });
 
+// === экспорт middleware и клиента для других файлов ===
+module.exports = { app, authMiddleware, client };
+
 // === запуск сервера ===
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+}
