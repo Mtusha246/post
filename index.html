@@ -12,7 +12,486 @@
       min-height: 100vh; 
       color: #262626;
     }
-    /* ... (все твои стили остаются без изменений) ... */
+    
+    /* Header */
+    .header {
+      background: #fff; 
+      border-bottom: 1px solid #dbdbdb;
+      position: sticky; 
+      top: 0; 
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .header-content {
+      max-width: 935px; 
+      margin: 0 auto; 
+      padding: 12px 20px;
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between;
+    }
+    .logo { 
+      font-size: 28px; 
+      font-family: 'Brush Script MT', cursive;
+      font-weight: 600;
+      background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header-icons { 
+      display: flex; 
+      gap: 8px; 
+      align-items: center; 
+    }
+    .icon-btn {
+      background: none; 
+      border: none; 
+      font-size: 14px;
+      cursor: pointer; 
+      padding: 8px 12px; 
+      transition: all 0.2s;
+      border-radius: 8px;
+      font-weight: 500;
+      color: #262626;
+    }
+    .icon-btn:hover { 
+      background: #f5f5f5;
+    }
+    
+    /* Container */
+    .container { 
+      max-width: 614px; 
+      margin: 0 auto; 
+      padding: 30px 20px; 
+    }
+    
+    /* Create Post Card */
+    .create-post-card {
+      background: #fff; 
+      border: 1px solid #dbdbdb; 
+      border-radius: 12px; 
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .card-header { 
+      padding: 16px 20px; 
+      border-bottom: 1px solid #efefef; 
+      font-weight: 600; 
+      font-size: 16px; 
+    }
+    .card-body { 
+      padding: 20px; 
+    }
+    
+    /* Textarea */
+    textarea {
+      width: 100%; 
+      min-height: 100px; 
+      padding: 14px;
+      border: 1px solid #dbdbdb; 
+      border-radius: 10px; 
+      resize: vertical;
+      font-family: inherit;
+      font-size: 14px;
+      transition: border 0.2s;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #0095f6;
+    }
+    
+    /* Button */
+    button.primary {
+      background: linear-gradient(45deg, #0095f6, #00b4ff); 
+      color: white; 
+      border: none; 
+      border-radius: 10px;
+      width: 100%; 
+      height: 42px; 
+      font-weight: 600; 
+      margin-top: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 15px;
+    }
+    button.primary:hover { 
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,149,246,0.3);
+    }
+    button.primary:active {
+      transform: translateY(0);
+    }
+    
+    /* Posts */
+    #posts { 
+      animation: fadeIn 0.5s ease 0.2s both; 
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .post {
+      background: #fff; 
+      border: 1px solid #dbdbdb; 
+      border-radius: 12px; 
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: box-shadow 0.3s;
+    }
+    .post:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .post-header {
+      padding: 14px 16px; 
+      display: flex; 
+      justify-content: space-between;
+      border-bottom: 1px solid #efefef;
+      align-items: center;
+    }
+    .post-user { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+    }
+    .post-avatar {
+      width: 36px; 
+      height: 36px; 
+      border-radius: 50%; 
+      background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      color: white; 
+      font-size: 16px; 
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .post-user span {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .post-content { 
+      padding: 16px 20px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    button.delete-btn {
+      background: none; 
+      border: none; 
+      color: #999; 
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    button.delete-btn:hover { 
+      background: #f5f5f5;
+      color: #262626; 
+    }
+    
+    /* Chats Layout */
+    .chats-wrapper { 
+      display: grid; 
+      grid-template-columns: 320px 1fr; 
+      gap: 20px;
+      height: calc(100vh - 140px);
+    }
+    
+    .panel { 
+      background:#fff; 
+      border:1px solid #dbdbdb; 
+      border-radius: 12px; 
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-header { 
+      padding:16px 20px; 
+      border-bottom:1px solid #efefef; 
+      font-weight:600;
+      font-size: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .panel-body { 
+      padding: 16px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    
+    /* Friends List */
+    .friends-list { 
+      max-height: none;
+      overflow: visible;
+    }
+    .friend-item { 
+      display:flex; 
+      align-items:center; 
+      gap:12px; 
+      padding:12px; 
+      border-radius:10px; 
+      cursor:pointer;
+      transition: all 0.2s;
+      margin-bottom: 4px;
+    }
+    .friend-item:hover { 
+      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+      transform: translateX(4px);
+    }
+    .friend-avatar { 
+      width:40px; 
+      height:40px; 
+      border-radius:50%; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color:#fff; 
+      display:flex; 
+      align-items:center; 
+      justify-content:center; 
+      font-weight:700;
+      font-size: 16px;
+      box-shadow: 0 2px 8px rgba(102,126,234,0.3);
+    }
+    
+    /* Chat Window */
+    .chat-window { 
+      display:flex; 
+      flex-direction:column; 
+      height: 100%;
+    }
+    .messages { 
+      flex:1; 
+      overflow-y: auto; 
+      padding: 20px; 
+      background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+      scroll-behavior: smooth;
+    }
+    .msg { 
+      max-width:70%; 
+      margin:8px 0; 
+      padding:10px 14px; 
+      border-radius:18px; 
+      line-height:1.4; 
+      word-wrap:break-word;
+      animation: messageSlide 0.3s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      font-size: 14px;
+    }
+    @keyframes messageSlide {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .msg.me { 
+      background: linear-gradient(135deg, #0095f6 0%, #00b4ff 100%);
+      color: white;
+      margin-left:auto; 
+      border-bottom-right-radius:4px;
+    }
+    .msg.them { 
+      background:#e4e6eb; 
+      color: #050505;
+      margin-right:auto; 
+      border-bottom-left-radius:4px;
+    }
+    
+    /* Message Composer */
+    .composer { 
+      display:flex; 
+      gap:10px; 
+      padding:16px; 
+      border-top:1px solid #efefef; 
+      background:#fff;
+    }
+    .composer input { 
+      flex:1; 
+      padding:12px 16px; 
+      border:1px solid #dbdbdb; 
+      border-radius: 20px;
+      font-family: inherit;
+      font-size: 14px;
+      transition: border 0.2s;
+    }
+    .composer input:focus {
+      outline: none;
+      border-color: #0095f6;
+    }
+    .composer button { 
+      width:auto;
+      padding: 0 24px;
+      border-radius: 20px;
+      margin: 0;
+    }
+    
+    /* Add Friend Input */
+    #addFriendUsername {
+      flex:1; 
+      padding:10px 14px; 
+      border:1px solid #dbdbdb; 
+      border-radius:10px;
+      font-size: 14px;
+      transition: border 0.2s;
+    }
+    #addFriendUsername:focus {
+      outline: none;
+      border-color: #0095f6;
+    }
+    
+    /* Incoming Requests */
+    #incomingRequests > div {
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin: 6px 0;
+    }
+    #incomingRequests button {
+      height: 32px;
+      font-size: 13px;
+    }
+    
+    /* Profile */
+    #profileInfo {
+      font-size: 15px;
+      line-height: 2;
+    }
+    #profileInfo b {
+      color: #8e8e8e;
+      font-weight: 500;
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .header-content {
+        padding: 10px 16px;
+      }
+      .logo {
+        font-size: 24px;
+      }
+      .icon-btn {
+        padding: 6px 10px;
+        font-size: 13px;
+      }
+      .container {
+        padding: 20px 12px;
+      }
+      .create-post-card {
+        border-radius: 10px;
+      }
+      .card-header {
+        font-size: 15px;
+        padding: 14px 16px;
+      }
+      .card-body {
+        padding: 16px;
+      }
+      textarea {
+        min-height: 80px;
+        font-size: 14px;
+      }
+      
+      /* Chats mobile layout */
+      .chats-wrapper {
+        grid-template-columns: 1fr;
+        height: auto;
+        gap: 0;
+      }
+      .panel:first-child {
+        max-height: 400px;
+        margin-bottom: 16px;
+      }
+      .panel:last-child {
+        height: calc(100vh - 560px);
+        min-height: 400px;
+      }
+      .chat-window {
+        height: 100%;
+      }
+      .messages {
+        padding: 16px;
+      }
+      .msg {
+        max-width: 85%;
+        font-size: 14px;
+        padding: 9px 12px;
+      }
+      .composer {
+        padding: 12px;
+      }
+      .composer input {
+        font-size: 14px;
+        padding: 10px 14px;
+      }
+      .composer button {
+        padding: 0 20px;
+        font-size: 14px;
+      }
+      .friend-item {
+        padding: 10px;
+      }
+      .friend-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+      }
+      .post-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+      }
+      .post-content {
+        padding: 14px 16px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .header-content {
+        padding: 8px 12px;
+      }
+      .logo {
+        font-size: 22px;
+      }
+      .icon-btn {
+        padding: 6px 8px;
+        font-size: 12px;
+        gap: 6px;
+      }
+      .header-icons {
+        gap: 4px;
+      }
+      .container {
+        padding: 16px 8px;
+      }
+      .create-post-card,
+      .post {
+        border-radius: 8px;
+        margin-bottom: 16px;
+      }
+      .panel {
+        border-radius: 8px;
+      }
+      .card-header,
+      .panel-header {
+        font-size: 14px;
+        padding: 12px 14px;
+      }
+      button.primary {
+        height: 38px;
+        font-size: 14px;
+      }
+      .msg {
+        max-width: 90%;
+        font-size: 13px;
+      }
+      .chats-wrapper {
+        gap: 0;
+      }
+      .panel:last-child {
+        min-height: 350px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -20,15 +499,16 @@
     <div class="header-content">
       <div class="logo">Полуgram</div>
       <div class="header-icons">
-        <button class="icon-btn" id="navHome">Home</button>
-        <button class="icon-btn" id="navProfile">Profile</button>
-        <button class="icon-btn" id="navChats">Chats</button>
+        <button class="icon-btn" id="navHome" title="Home">Home</button>
+        <button class="icon-btn" id="navProfile" title="Profile">Profile</button>
+        <button class="icon-btn" id="navChats" title="Chats">Chats</button>
         <button class="icon-btn" onclick="logout()">Logout</button>
       </div>
     </div>
   </div>
 
   <div class="container">
+    <!-- Home Section -->
     <section id="homeSection">
       <div class="create-post-card">
         <div class="card-header">Create New Post</div>
@@ -37,9 +517,10 @@
           <button class="primary" onclick="createPost()">Share</button>
         </div>
       </div>
-      <div id="posts">Loading posts...</div>
+      <div id="posts" class="loading">Loading posts...</div>
     </section>
 
+    <!-- Profile Section -->
     <section id="profileSection" style="display:none">
       <div class="create-post-card">
         <div class="card-header">Profile</div>
@@ -49,22 +530,25 @@
       </div>
     </section>
 
+    <!-- Chats Section -->
     <section id="chatsSection" style="display:none">
       <div class="chats-wrapper">
+        <!-- Sidebar: friends + requests -->
         <div class="panel">
           <div class="panel-header">People</div>
           <div class="panel-body">
             <div style="display:flex; gap:6px; margin-bottom:14px;">
               <input id="addFriendUsername" placeholder="Enter username" />
-              <button class="primary" style="width:auto; padding:0 16px;" onclick="sendFriendRequest()">Add</button>
+              <button class="primary" style="width:auto; padding:0 16px; margin:0;" onclick="sendFriendRequest()">Add</button>
             </div>
-            <div style="font-weight:600; margin:12px 0 8px; color:#8e8e8e;">Incoming</div>
+            <div style="font-weight:600; margin:12px 0 8px; font-size: 13px; color: #8e8e8e; text-transform: uppercase;">Incoming</div>
             <div id="incomingRequests">Loading...</div>
-            <div style="font-weight:600; margin:16px 0 8px; color:#8e8e8e;">Friends</div>
-            <div id="friendsList">Loading...</div>
+            <div style="font-weight:600; margin:16px 0 8px; font-size: 13px; color: #8e8e8e; text-transform: uppercase;">Friends</div>
+            <div class="friends-list" id="friendsList">Loading...</div>
           </div>
         </div>
 
+        <!-- Chat window -->
         <div class="panel">
           <div class="panel-header" id="chatHeader">Select a friend</div>
           <div class="chat-window">
@@ -81,177 +565,178 @@
 
   <script defer>
     const API_BASE = window.location.origin;
-    let currentChatUserId = null;
-    let pollTimer = null;
 
-    // ---- AUTH ----
     async function checkAuth() {
       try {
         const res = await fetch(`${API_BASE}/auth/check`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Auth check failed');
         const data = await res.json();
+
         if (!data.authenticated) {
+          console.warn('Not authenticated → redirecting');
           window.location.href = '/auth.html';
           return false;
         }
-        window.__me_id = data.user?.id;
+        console.log('Authenticated as', data.user?.username || 'unknown');
         return true;
-      } catch {
+      } catch (err) {
+        console.error('Auth check error:', err);
         window.location.href = '/auth.html';
         return false;
       }
     }
 
-    // ---- POSTS ----
     async function fetchPosts() {
       const container = document.getElementById('posts');
       container.textContent = 'Loading...';
       try {
         const res = await fetch(`${API_BASE}/posts`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load posts');
         const posts = await res.json();
+        if (!Array.isArray(posts)) throw new Error('Invalid posts format');
         renderPosts(posts);
-      } catch {
-        container.textContent = 'Error loading posts.';
+      } catch (err) {
+        console.error('Fetch posts error:', err);
+        container.textContent = 'Error loading posts';
       }
     }
 
     async function createPost() {
       const content = document.getElementById('postContent').value.trim();
-      if (!content) return alert('Write something first!');
+      if (!content) return alert('Please write something!');
       try {
-        await fetch(`${API_BASE}/posts`, {
+        const res = await fetch(`${API_BASE}/posts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ content })
+          body: JSON.stringify({ content }),
+          credentials: 'include'
         });
+        if (!res.ok) throw new Error('Failed to create post');
         document.getElementById('postContent').value = '';
-        fetchPosts();
-      } catch (e) {
-        alert('Failed to post.');
+        await fetchPosts();
+      } catch (err) {
+        alert('Error: ' + err.message);
       }
     }
 
     async function deletePost(id) {
       if (!confirm('Delete this post?')) return;
-      await fetch(`${API_BASE}/posts/${id}`, { method: 'DELETE', credentials: 'include' });
-      fetchPosts();
-    }
-
-    function renderPosts(posts) {
-      const container = document.getElementById('posts');
-      if (!Array.isArray(posts) || !posts.length) {
-        container.innerHTML = '<div style="color:#8e8e8e;text-align:center;padding:20px;">No posts yet</div>';
-        return;
+      try {
+        const res = await fetch(`${API_BASE}/posts/${id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        if (!res.ok) throw new Error('Failed to delete post');
+        fetchPosts();
+      } catch (err) {
+        alert('Error: ' + err.message);
       }
-      container.innerHTML = posts.map(p => `
-        <div class="post">
-          <div class="post-header">
-            <div class="post-user">
-              <div class="post-avatar">${(p.username || '?')[0].toUpperCase()}</div>
-              <span>${escapeHtml(p.username)}</span>
-            </div>
-            <button class="delete-btn" onclick="deletePost(${p.id})">⋯</button>
-          </div>
-          <div class="post-content">${escapeHtml(p.content)}</div>
-        </div>`).join('');
     }
 
-    // ---- FRIENDS ----
+    async function logout() {
+      try {
+        await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
+      } catch (err) {
+        console.error('Logout failed:', err);
+      } finally {
+        window.location.href = '/auth.html';
+      }
+    }
+
+    // ---- Friends / Requests ----
     async function sendFriendRequest() {
       const username = document.getElementById('addFriendUsername').value.trim();
       if (!username) return alert('Enter a username');
-      await fetch(`${API_BASE}/friends/request`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ toUsername: username })
-      });
-      document.getElementById('addFriendUsername').value = '';
-      loadIncomingRequests();
+      try {
+        const res = await fetch(`${API_BASE}/friends/request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ toUsername: username })
+        });
+        if (!res.ok) {
+          const t = await res.text();
+          throw new Error(t || 'Failed to send request');
+        }
+        document.getElementById('addFriendUsername').value = '';
+        alert('Request sent');
+        loadIncomingRequests();
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
     }
 
     async function loadIncomingRequests() {
-      const c = document.getElementById('incomingRequests');
-      const res = await fetch(`${API_BASE}/friends/requests`, { credentials: 'include' });
-      const list = await res.json();
-      if (!list.length) {
-        c.innerHTML = '<div style="color:#8e8e8e;">No incoming requests</div>';
-        return;
+      const container = document.getElementById('incomingRequests');
+      container.textContent = 'Loading...';
+      try {
+        const res = await fetch(`${API_BASE}/friends/requests`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load requests');
+        const requests = await res.json();
+        if (!Array.isArray(requests) || requests.length === 0) {
+          container.innerHTML = '<div style="color: #8e8e8e; font-size: 13px; padding: 8px;">No incoming requests</div>';
+          return;
+        }
+        container.innerHTML = requests.map(r => `
+          <div style="display:flex; align-items:center; justify-content:space-between; margin:6px 0;">
+            <span style="font-size: 14px;">${escapeHtml(r.from_username)}</span>
+            <button class="primary" style="width:auto; padding:0 12px; height:32px; margin:0;" onclick="acceptRequest(${r.id})">Accept</button>
+          </div>
+        `).join('');
+      } catch (e) {
+        container.textContent = 'Failed to load requests';
       }
-      c.innerHTML = list.map(r => `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0;">
-          <span>${escapeHtml(r.from_username)}</span>
-          <button class="primary" style="width:auto;padding:0 10px;height:30px;" onclick="acceptRequest(${r.id})">Accept</button>
-        </div>
-      `).join('');
     }
 
-    async function acceptRequest(id) {
-      await fetch(`${API_BASE}/friends/accept`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ requestId: id })
-      });
-      loadIncomingRequests();
-      loadFriends();
+    async function acceptRequest(requestId) {
+      try {
+        const res = await fetch(`${API_BASE}/friends/accept`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ requestId })
+        });
+        if (!res.ok) throw new Error('Failed to accept');
+        await loadIncomingRequests();
+        await loadFriends();
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
     }
 
     async function loadFriends() {
-      const c = document.getElementById('friendsList');
-      const res = await fetch(`${API_BASE}/friends`, { credentials: 'include' });
-      const list = await res.json();
-      if (!list.length) {
-        c.innerHTML = '<div style="color:#8e8e8e;">No friends yet</div>';
-        return;
-      }
-      c.innerHTML = list.map(f => `
-        <div class="friend-item" onclick="openChat(${f.id}, '${encodeURIComponent(f.username)}')">
-          <div class="friend-avatar">${f.username[0].toUpperCase()}</div>
-          <div>${escapeHtml(f.username)}</div>
-        </div>
-      `).join('');
-    }
-
-    // ---- CHATS ----
-    async function openChat(friendId, encodedName) {
-      if (pollTimer) clearInterval(pollTimer);
-      currentChatUserId = friendId;
-      setChatHeader(decodeURIComponent(encodedName));
-      await refreshMessages();
-      pollTimer = setInterval(refreshMessages, 3000);
-    }
-
-    async function refreshMessages() {
-      if (!currentChatUserId) return;
+      const container = document.getElementById('friendsList');
+      container.textContent = 'Loading...';
       try {
-        const res = await fetch(`${API_BASE}/messages/${currentChatUserId}`, { credentials: 'include' });
-        const msgs = await res.json();
-        renderMessages(msgs);
-      } catch {}
+        const res = await fetch(`${API_BASE}/friends`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load friends');
+        const friends = await res.json();
+        if (!Array.isArray(friends) || friends.length === 0) {
+          container.innerHTML = '<div style="color: #8e8e8e; font-size: 13px; padding: 8px;">No friends yet</div>';
+          return;
+        }
+        container.innerHTML = friends.map(f => `
+          <div class="friend-item" onclick="openChat(${f.id}, '${encodeURIComponent(f.username)}')">
+            <div class="friend-avatar">${escapeHtml((f.username||'?')[0].toUpperCase())}</div>
+            <div style="font-weight: 500; font-size: 14px;">${escapeHtml(f.username)}</div>
+          </div>
+        `).join('');
+      } catch (e) {
+        container.textContent = 'Failed to load friends';
+      }
     }
 
-    async function sendMessage() {
-      const input = document.getElementById('messageInput');
-      const text = input.value.trim();
-      if (!text || !currentChatUserId) return;
-      input.value = '';
-      await fetch(`${API_BASE}/messages/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ toUserId: currentChatUserId, content: text })
-      });
-      refreshMessages();
-    }
+    // ---- Chat client ----
+    let currentChatUserId = null;
+    let pollTimer = null;
 
     function setChatHeader(name) {
-      document.getElementById('chatHeader').textContent = name ? `Chat with ${name}` : 'Select a friend';
+      const header = document.getElementById('chatHeader');
+      header.textContent = name ? `Chat with ${name}` : 'Select a friend';
     }
 
     function renderMessages(list) {
       const box = document.getElementById('messagesContainer');
-      if (!Array.isArray(list)) return;
       box.innerHTML = list.map(m => {
         const mine = m.sender_id === window.__me_id;
         return `<div class="msg ${mine ? 'me':'them'}">${escapeHtml(m.content)}</div>`;
@@ -259,48 +744,131 @@
       box.scrollTop = box.scrollHeight;
     }
 
-    // ---- PROFILE ----
-    async function loadProfile() {
-      const info = document.getElementById('profileInfo');
-      const res = await fetch(`${API_BASE}/auth/check`, { credentials: 'include' });
-      const data = await res.json();
-      if (!data.authenticated) {
-        window.location.href = '/auth.html';
+    async function discoverMe() {
+      try {
+        const res = await fetch(`${API_BASE}/auth/check`, { credentials: 'include' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.user) window.__me_id = data.user.id;
+      } catch {}
+    }
+
+    async function loadMessages(friendId) {
+      const res = await fetch(`${API_BASE}/messages/${friendId}`, { credentials:'include' });
+      if (!res.ok) throw new Error('Failed to load messages');
+      return res.json();
+    }
+
+    async function openChat(friendId, encodedName) {
+      await discoverMe();
+      currentChatUserId = friendId;
+      setChatHeader(decodeURIComponent(encodedName));
+      try {
+        const list = await loadMessages(friendId);
+        renderMessages(list);
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(async () => {
+          try { renderMessages(await loadMessages(friendId)); } catch {}
+        }, 3000);
+      } catch (e) {
+        alert('Failed to open chat');
+      }
+    }
+
+    async function sendMessage() {
+      if (!currentChatUserId) return;
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      try {
+        const res = await fetch(`${API_BASE}/messages/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ toUserId: currentChatUserId, content: text })
+        });
+        if (!res.ok) throw new Error('Send failed');
+        const list = await loadMessages(currentChatUserId);
+        renderMessages(list);
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+
+    function renderPosts(posts) {
+      const container = document.getElementById('posts');
+      if (!posts.length) {
+        container.innerHTML = '<div style="text-align: center; color: #8e8e8e; padding: 40px;">No posts yet.</div>';
         return;
       }
-      info.innerHTML = `
-        <div><b>Username:</b> ${escapeHtml(data.user.username)}</div>
-        <div><b>Email:</b> ${escapeHtml(data.user.email)}</div>`;
+      container.innerHTML = posts.map(p => `
+        <div class="post">
+          <div class="post-header">
+            <div class="post-user">
+              <div class="post-avatar">${(p.username || '?')[0].toUpperCase()}</div>
+              <span>${escapeHtml(p.username || 'user')}</span>
+            </div>
+            <button class="delete-btn" aria-label="Delete post" onclick="deletePost(${p.id})">⋯</button>
+          </div>
+          <div class="post-content">${escapeHtml(p.content || '')}</div>
+        </div>
+      `).join('');
     }
 
-    // ---- NAV ----
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // ---- Navigation ----
     function showSection(section) {
-      ['home', 'profile', 'chats'].forEach(s => {
-        document.getElementById(`${s}Section`).style.display = s === section ? '' : 'none';
-      });
-      if (pollTimer && section !== 'chats') {
-        clearInterval(pollTimer);
-        pollTimer = null;
+      document.getElementById('homeSection').style.display = section === 'home' ? '' : 'none';
+      document.getElementById('profileSection').style.display = section === 'profile' ? '' : 'none';
+      document.getElementById('chatsSection').style.display = section === 'chats' ? '' : 'none';
+    }
+
+    async function loadProfile() {
+      const info = document.getElementById('profileInfo');
+      info.textContent = 'Loading profile...';
+      try {
+        const res = await fetch(`${API_BASE}/auth/check`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load profile');
+        const data = await res.json();
+        if (!data.authenticated) {
+          window.location.href = '/auth.html';
+          return;
+        }
+        const u = data.user || {};
+        info.innerHTML = `
+          <div><b>Username:</b> ${escapeHtml(u.username || '')}</div>
+          <div><b>Email:</b> ${escapeHtml(u.email || '')}</div>
+        `;
+      } catch (e) {
+        info.textContent = 'Failed to load profile';
       }
     }
 
-    document.getElementById('navHome').onclick = () => { showSection('home'); fetchPosts(); };
-    document.getElementById('navProfile').onclick = () => { showSection('profile'); loadProfile(); };
-    document.getElementById('navChats').onclick = () => { showSection('chats'); loadIncomingRequests(); loadFriends(); };
+    document.getElementById('navHome').addEventListener('click', () => {
+      showSection('home');
+      fetchPosts();
+    });
+    document.getElementById('navProfile').addEventListener('click', () => {
+      showSection('profile');
+      loadProfile();
+    });
+    document.getElementById('navChats').addEventListener('click', () => {
+      showSection('chats');
+      loadIncomingRequests();
+      loadFriends();
+    });
 
-    function escapeHtml(str = '') {
-      return str.replace(/[&<>"']/g, c => ({
-        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
-      })[c]);
-    }
-
-    async function logout() {
-      await fetch(`${API_BASE}/auth/logout`, { method:'POST', credentials:'include' });
-      window.location.href = '/auth.html';
-    }
-
-    // ---- STARTUP ----
-    checkAuth().then(ok => { if (ok) { showSection('home'); fetchPosts(); } });
+    // Startup
+    checkAuth().then(auth => { if (auth) { showSection('home'); fetchPosts(); } });
   </script>
 </body>
 </html>
