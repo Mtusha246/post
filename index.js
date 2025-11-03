@@ -64,6 +64,26 @@ async function ensureFriendsSchema() {
 
 ensureFriendsSchema();
 
+// === Ensure messages schema ===
+async function ensureMessagesSchema() {
+  try {
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS messages (
+        id SERIAL PRIMARY KEY,
+        sender_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        receiver_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Ensured messages schema');
+  } catch (e) {
+    console.error('❌ Ensure messages schema error:', e);
+  }
+}
+
+ensureMessagesSchema();
+
 // === JWT verify helper ===
 function verifyToken(token) {
   try {
@@ -178,6 +198,8 @@ const postsRouter = require('./posts');
 app.use('/posts', postsRouter);
 const friendsRouter = require('./friends');
 app.use('/friends', friendsRouter);
+const messagesRouter = require('./messages');
+app.use('/messages', messagesRouter);
 
 // === LOGOUT ===
 app.post('/auth/logout', (req, res) => {
