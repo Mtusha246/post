@@ -91,14 +91,16 @@
 
     async function checkAuth() {
       try {
-        const res = await fetch(`${API_BASE}/check-auth`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/auth/check`, { credentials: 'include' }); // ✅ исправлено
+        if (!res.ok) throw new Error('Auth check failed');
         const data = await res.json();
+
         if (!data.authenticated) {
           console.warn('Not authenticated → redirecting');
           window.location.href = '/auth.html';
           return false;
         }
-        console.log('Authenticated as', data.user);
+        console.log('Authenticated as', data.user?.username || 'unknown');
         return true;
       } catch (err) {
         console.error('Auth check error:', err);
@@ -112,6 +114,7 @@
       container.textContent = 'Loading...';
       try {
         const res = await fetch(`${API_BASE}/posts`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load posts');
         const posts = await res.json();
         if (!Array.isArray(posts)) throw new Error('Invalid posts format');
         renderPosts(posts);
@@ -142,7 +145,10 @@
     async function deletePost(id) {
       if (!confirm('Delete this post?')) return;
       try {
-        const res = await fetch(`${API_BASE}/posts/${id}`, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch(`${API_BASE}/posts/${id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
         if (!res.ok) throw new Error('Failed to delete post');
         fetchPosts();
       } catch (err) {
@@ -153,7 +159,11 @@
     async function logout() {
       try {
         await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
+      } catch (err) {
+        console.error('Logout failed:', err);
       } finally {
+        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = '/auth.html';
       }
     }
