@@ -62,7 +62,7 @@
     // ✅ Проверка авторизации через сервер
     async function checkAuth() {
       try {
-        const res = await fetch('/check-auth', { credentials: 'include' });
+        const res = await fetch('/auth/check', { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
           if (data.authenticated) {
@@ -86,12 +86,18 @@
       const identifier = document.getElementById('loginIdentifier').value;
       const password = document.getElementById('loginPassword').value;
 
-      const res = await fetch('/login', {
+      const res = await fetch('/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ username: identifier, email: identifier, password })
       });
+
+      if (!res.ok) {
+        const text = await res.text();
+        alert('❌ Login failed: ' + text);
+        return;
+      }
 
       const data = await res.json();
       if (data.success) {
@@ -109,12 +115,18 @@
       const email = regEmail.value;
       const password = regPassword.value;
 
-      const res = await fetch('/register', {
+      const res = await fetch('/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ username, email, password })
       });
+
+      if (!res.ok) {
+        const text = await res.text();
+        alert('❌ Registration failed: ' + text);
+        return;
+      }
 
       const data = await res.json();
       if (data.success) {
