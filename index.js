@@ -34,6 +34,36 @@ app.use(
 );
 app.use(express.static(__dirname));
 
+// === Ensure schema (friends) ===
+async function ensureFriendsSchema() {
+  try {
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS friend_requests (
+        id SERIAL PRIMARY KEY,
+        from_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        to_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (from_user_id, to_user_id)
+      );
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS friendships (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        friend_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (user_id, friend_user_id)
+      );
+    `);
+    console.log('✅ Ensured friends schema');
+  } catch (e) {
+    console.error('❌ Ensure friends schema error:', e);
+  }
+}
+
+ensureFriendsSchema();
+
 // === JWT verify helper ===
 function verifyToken(token) {
   try {
