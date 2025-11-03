@@ -199,9 +199,11 @@
       grid-template-columns: 260px 1fr; 
       gap: 20px;
       height: calc(100vh - 140px);
-      max-width: 1200px;   /* вот это важно */
-      margin: 0 auto;      /* центрирует */
-      width: 100%;         /* растягивает по ширине */
+      width: 100vw;       /* растягиваем на всю ширину экрана */
+      max-width: none;    /* убираем ограничение */
+      margin: 0;          /* убираем центрирование */
+      padding: 0 30px;    /* можно добавить немного отступа слева и справа */
+      box-sizing: border-box;
     }
     
     .panel { 
@@ -876,6 +878,7 @@
   </script>
 </body>
 </html>
+
 
 
 
