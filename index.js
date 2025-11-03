@@ -144,15 +144,15 @@ app.get('/check-auth', (req, res) => {
 });
 
 // === ROUTES ===
-// ⚠️ Подключаем posts.js, чтобы заработали /posts GET/POST/DELETE
 const postsRouter = require('./posts');
 app.use('/posts', postsRouter);
 
-// === LOGOUT ===
+// === LOGOUT === ✅ исправленный вариант
 app.post('/logout', (req, res) => {
   res.clearCookie('token', {
-    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+    httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
     path: '/',
   });
   console.log('🚪 Logout — cookie cleared');
