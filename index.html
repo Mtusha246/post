@@ -101,10 +101,22 @@
     <!-- Chats Section -->
     <section id="chatsSection" style="display:none">
       <div class="create-post-card">
-        <div class="card-header">Chats</div>
+        <div class="card-header">Friends & Requests</div>
         <div class="card-body">
-          <div id="chatsList">No chats yet. Coming soon ✨</div>
+          <div style="margin-bottom:10px; font-weight:600;">Send friend request</div>
+          <input id="addFriendUsername" placeholder="Enter username" />
+          <button class="primary" onclick="sendFriendRequest()">Add Friend</button>
         </div>
+      </div>
+
+      <div class="create-post-card">
+        <div class="card-header">Incoming Requests</div>
+        <div class="card-body" id="incomingRequests">Loading...</div>
+      </div>
+
+      <div class="create-post-card">
+        <div class="card-header">Your Friends</div>
+        <div class="card-body" id="friendsList">Loading...</div>
       </div>
     </section>
   </div>
@@ -188,6 +200,86 @@
         localStorage.clear();
         sessionStorage.clear();
         window.location.href = '/auth.html';
+      }
+    }
+
+    // ---- Friends / Requests ----
+    async function sendFriendRequest() {
+      const username = document.getElementById('addFriendUsername').value.trim();
+      if (!username) return alert('Enter a username');
+      try {
+        const res = await fetch(`${API_BASE}/friends/request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ toUsername: username })
+        });
+        if (!res.ok) {
+          const t = await res.text();
+          throw new Error(t || 'Failed to send request');
+        }
+        document.getElementById('addFriendUsername').value = '';
+        alert('Request sent');
+        loadIncomingRequests();
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+
+    async function loadIncomingRequests() {
+      const container = document.getElementById('incomingRequests');
+      container.textContent = 'Loading...';
+      try {
+        const res = await fetch(`${API_BASE}/friends/requests`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load requests');
+        const requests = await res.json();
+        if (!Array.isArray(requests) || requests.length === 0) {
+          container.innerHTML = '<div>No incoming requests</div>';
+          return;
+        }
+        container.innerHTML = requests.map(r => `
+          <div style="display:flex; align-items:center; justify-content:space-between; margin:6px 0;">
+            <span>${escapeHtml(r.from_username)} wants to be friends</span>
+            <button class="primary" style="width:auto; padding:0 12px; height:32px;" onclick="acceptRequest(${r.id})">Accept</button>
+          </div>
+        `).join('');
+      } catch (e) {
+        container.textContent = 'Failed to load requests';
+      }
+    }
+
+    async function acceptRequest(requestId) {
+      try {
+        const res = await fetch(`${API_BASE}/friends/accept`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ requestId })
+        });
+        if (!res.ok) throw new Error('Failed to accept');
+        await loadIncomingRequests();
+        await loadFriends();
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+
+    async function loadFriends() {
+      const container = document.getElementById('friendsList');
+      container.textContent = 'Loading...';
+      try {
+        const res = await fetch(`${API_BASE}/friends`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load friends');
+        const friends = await res.json();
+        if (!Array.isArray(friends) || friends.length === 0) {
+          container.innerHTML = '<div>No friends yet</div>';
+          return;
+        }
+        container.innerHTML = friends.map(f => `
+          <div>${escapeHtml(f.username)} (${escapeHtml(f.email || '')})</div>
+        `).join('');
+      } catch (e) {
+        container.textContent = 'Failed to load friends';
       }
     }
 
