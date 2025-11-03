@@ -144,7 +144,7 @@ app.get('/check-auth', (req, res) => {
 });
 
 // === ROUTES ===
-// ⚠️ ВАЖНО: подключаем posts.js после авторизации
+// ⚠️ Подключаем posts.js, чтобы заработали /posts GET/POST/DELETE
 const postsRouter = require('./posts');
 app.use('/posts', postsRouter);
 
@@ -161,7 +161,16 @@ app.post('/logout', (req, res) => {
 
 // === FALLBACK ===
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  const token = req.cookies?.token;
+  const decoded = token ? verifyToken(token) : null;
+
+  if (decoded) {
+    console.log('🟢 Valid token, show index.html');
+    res.sendFile(path.join(__dirname, 'index.html'));
+  } else {
+    console.log('🔴 No token, redirect to auth.html');
+    res.sendFile(path.join(__dirname, 'auth.html'));
+  }
 });
 
 app.listen(PORT, '0.0.0.0', () => {
