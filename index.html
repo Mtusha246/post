@@ -67,23 +67,46 @@
     <div class="header-content">
       <div class="logo">Полуgram</div>
       <div class="header-icons">
-        <button class="icon-btn" title="Home">Home</button>
-        <button class="icon-btn" title="Profile">Profile</button>
+        <button class="icon-btn" id="navHome" title="Home">Home</button>
+        <button class="icon-btn" id="navProfile" title="Profile">Profile</button>
+        <button class="icon-btn" id="navChats" title="Chats">Chats</button>
         <button class="icon-btn" onclick="logout()">Logout</button>
       </div>
     </div>
   </div>
 
   <div class="container">
-    <div class="create-post-card">
-      <div class="card-header">Create New Post</div>
-      <div class="card-body">
-        <textarea id="postContent" placeholder="Write something interesting..."></textarea>
-        <button class="primary" onclick="createPost()">Share</button>
+    <!-- Home Section -->
+    <section id="homeSection">
+      <div class="create-post-card">
+        <div class="card-header">Create New Post</div>
+        <div class="card-body">
+          <textarea id="postContent" placeholder="Write something interesting..."></textarea>
+          <button class="primary" onclick="createPost()">Share</button>
+        </div>
       </div>
-    </div>
+      <div id="posts" class="loading">Loading posts...</div>
+    </section>
 
-    <div id="posts" class="loading">Loading posts...</div>
+    <!-- Profile Section -->
+    <section id="profileSection" style="display:none">
+      <div class="create-post-card">
+        <div class="card-header">Profile</div>
+        <div class="card-body">
+          <div id="profileInfo">Loading profile...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chats Section -->
+    <section id="chatsSection" style="display:none">
+      <div class="create-post-card">
+        <div class="card-header">Chats</div>
+        <div class="card-body">
+          <div id="chatsList">No chats yet. Coming soon ✨</div>
+        </div>
+      </div>
+    </section>
   </div>
 
   <script defer>
@@ -197,8 +220,48 @@
         .replace(/'/g, '&#039;');
     }
 
-    // 🔹 Запуск
-    checkAuth().then(auth => { if (auth) fetchPosts(); });
+    // ---- Navigation ----
+    function showSection(section) {
+      document.getElementById('homeSection').style.display = section === 'home' ? '' : 'none';
+      document.getElementById('profileSection').style.display = section === 'profile' ? '' : 'none';
+      document.getElementById('chatsSection').style.display = section === 'chats' ? '' : 'none';
+    }
+
+    async function loadProfile() {
+      const info = document.getElementById('profileInfo');
+      info.textContent = 'Loading profile...';
+      try {
+        const res = await fetch(`${API_BASE}/auth/check`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load profile');
+        const data = await res.json();
+        if (!data.authenticated) {
+          window.location.href = '/auth.html';
+          return;
+        }
+        const u = data.user || {};
+        info.innerHTML = `
+          <div><b>Username:</b> ${escapeHtml(u.username || '')}</div>
+          <div><b>Email:</b> ${escapeHtml(u.email || '')}</div>
+        `;
+      } catch (e) {
+        info.textContent = 'Failed to load profile';
+      }
+    }
+
+    document.getElementById('navHome').addEventListener('click', () => {
+      showSection('home');
+      fetchPosts();
+    });
+    document.getElementById('navProfile').addEventListener('click', () => {
+      showSection('profile');
+      loadProfile();
+    });
+    document.getElementById('navChats').addEventListener('click', () => {
+      showSection('chats');
+    });
+
+    // 🔹 Startup
+    checkAuth().then(auth => { if (auth) { showSection('home'); fetchPosts(); } });
   </script>
 </body>
 </html>
