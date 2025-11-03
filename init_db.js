@@ -46,7 +46,30 @@ async function init() {
       );
     `);
 
-    console.log('✅ Tables created successfully (users + posts + comments)');
+    // === FRIEND REQUESTS ===
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS friend_requests (
+        id SERIAL PRIMARY KEY,
+        from_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        to_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (from_user_id, to_user_id)
+      );
+    `);
+
+    // === FRIENDSHIPS ===
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS friendships (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        friend_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (user_id, friend_user_id)
+      );
+    `);
+
+    console.log('✅ Tables created successfully (users + posts + comments + friends)');
   } catch (err) {
     console.error('❌ Error initializing DB:', err);
   } finally {
