@@ -146,6 +146,8 @@ app.get('/auth/check', (req, res) => {
 // === ROUTES ===
 const postsRouter = require('./posts');
 app.use('/posts', postsRouter);
+const friendsRouter = require('./friends');
+app.use('/friends', friendsRouter);
 
 // === LOGOUT ===
 app.post('/auth/logout', (req, res) => {
