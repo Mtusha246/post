@@ -45,7 +45,7 @@ function verifyToken(token) {
 }
 
 // === REGISTER ===
-app.post('/register', async (req, res) => {
+app.post('/auth/register', async (req, res) => {
   const { username, email, password } = req.body;
   if (!username || !email || !password)
     return res.status(400).json({ success: false, error: 'All fields required' });
@@ -75,7 +75,7 @@ app.post('/register', async (req, res) => {
 });
 
 // === LOGIN ===
-app.post('/login', async (req, res) => {
+app.post('/auth/login', async (req, res) => {
   const { username, email, password } = req.body;
   const identifier = username || email;
 
@@ -129,8 +129,8 @@ app.post('/login', async (req, res) => {
 });
 
 // === CHECK AUTH ===
-app.get('/check-auth', (req, res) => {
-  console.log('🍪 /check-auth cookies:', req.cookies);
+app.get('/auth/check', (req, res) => {
+  console.log('🍪 /auth/check cookies:', req.cookies);
 
   const token = req.cookies?.token;
   if (!token) return res.json({ authenticated: false });
@@ -139,7 +139,7 @@ app.get('/check-auth', (req, res) => {
   if (!decoded) return res.json({ authenticated: false });
 
   const user = { id: decoded.id, username: decoded.username, email: decoded.email };
-  console.log('🟢 /check-auth → Authenticated as', user.username);
+  console.log('🟢 /auth/check → Authenticated as', user.username);
   res.json({ authenticated: true, user });
 });
 
@@ -147,8 +147,8 @@ app.get('/check-auth', (req, res) => {
 const postsRouter = require('./posts');
 app.use('/posts', postsRouter);
 
-// === LOGOUT === ✅ исправленный вариант
-app.post('/logout', (req, res) => {
+// === LOGOUT ===
+app.post('/auth/logout', (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
