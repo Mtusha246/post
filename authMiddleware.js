@@ -16,7 +16,7 @@ function authMiddleware(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecret123');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecret');
     console.log('✅ Token decoded:', decoded);
     req.user = decoded; // 👈 кладём данные пользователя в запрос
     next();
