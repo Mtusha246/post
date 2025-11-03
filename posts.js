@@ -1,91 +1,98 @@
+// === posts.js ===
 const express = require('express');
 const router = express.Router();
 const db = require('./db');
-const authMiddleware = require('./authMiddleware'); // ✅ JWT мидлвэр
+const authMiddleware = require('./authMiddleware'); // ✅ JWT middleware
 
 // === Получить все посты с комментариями === (открытый роут)
 router.get('/', async (req, res) => {
   try {
-    const postsRes = await db.query(
-      `SELECT p.*, u.username 
-       FROM posts p 
-       JOIN users u ON p.user_id = u.id
-       ORDER BY p.created_at DESC`
-    );
-    const posts = postsRes.rows;
+    const postsRes = await db.query(`
+      SELECT p.*, u.username
+      FROM posts p
+      JOIN users u ON p.user_id = u.id
+      ORDER BY p.created_at DESC
+    `);
 
-    // Получаем комментарии для всех постов
-    const commentsRes = await db.query(
-      `SELECT c.*, u.username 
-       FROM comments c
-       JOIN users u ON c.user_id = u.id
-       ORDER BY c.id ASC`
-    );
-    const comments = commentsRes.rows;
+    const commentsRes = await db.query(`
+      SELECT c.*, u.username
+      FROM comments c
+      JOIN users u ON c.user_id = u.id
+      ORDER BY c.id ASC
+    `);
 
-    // Добавляем комментарии в каждый пост
-    const postsWithComments = posts.map(p => ({
+    const posts = postsRes.rows.map(p => ({
       ...p,
-      comments: comments.filter(c => c.post_id === p.id)
+      comments: commentsRes.rows.filter(c => c.post_id === p.id)
     }));
 
-    res.json(postsWithComments);
+    res.json(posts);
   } catch (err) {
-    console.error('Error fetching posts:', err);
+    console.error('❌ Error fetching posts:', err);
     res.status(500).json({ error: 'Failed to fetch posts' });
   }
 });
 
-// === Создать пост === (только авторизованный пользователь, 1 раз в час)
+// === Создать новый пост === (только авторизованный, 1 раз в час)
 router.post('/', authMiddleware, async (req, res) => {
   const { content } = req.body;
-  if (!content || content.trim() === '')
+  const userId = req.user.id;
+
+  if (!content || content.trim() === '') {
     return res.status(400).json({ error: 'Content is required' });
+  }
 
   try {
-    // Проверяем, был ли пост за последний час
-    const recentPost = await db.query(
-      `SELECT * FROM posts 
+    // Проверяем, создавал ли пользователь пост за последний час
+    const lastPost = await db.query(
+      `SELECT created_at 
+       FROM posts 
        WHERE user_id = $1 
-       AND created_at > NOW() - INTERVAL '1 hour'`,
-      [req.user.id]
+       ORDER BY created_at DESC 
+       LIMIT 1`,
+      [userId]
     );
 
-    if (recentPost.rows.length > 0) {
-      return res
-        .status(429)
-        .json({ error: 'You can create only one post per hour' });
+    if (lastPost.rows.length > 0) {
+      const lastTime = new Date(lastPost.rows[0].created_at);
+      const diffHours = (Date.now() - lastTime.getTime()) / (1000 * 60 * 60);
+      if (diffHours < 1) {
+        const remaining = Math.ceil((1 - diffHours) * 60);
+        return res.status(429).json({
+          error: `You can create only one post per hour. Try again in ${remaining} minutes.`,
+        });
+      }
     }
 
     const result = await db.query(
       `INSERT INTO posts (user_id, content, created_at, updated_at)
        VALUES ($1, $2, NOW(), NOW())
        RETURNING *`,
-      [req.user.id, content]
+      [userId, content]
     );
 
-    // Добавляем username для фронта
-    const userRes = await db.query('SELECT username FROM users WHERE id = $1', [req.user.id]);
+    const userRes = await db.query('SELECT username FROM users WHERE id = $1', [userId]);
     const post = { ...result.rows[0], username: userRes.rows[0].username };
 
-    console.log(`📝 New post by ${post.username}`);
+    console.log(`📝 New post created by ${post.username}`);
     res.status(201).json(post);
   } catch (err) {
-    console.error('Error creating post:', err);
+    console.error('❌ Error creating post:', err);
     res.status(500).json({ error: 'Failed to create post' });
   }
 });
 
-// === Изменить свой пост === (только автор)
+// === Изменить пост === (только автор)
 router.put('/:id', authMiddleware, async (req, res) => {
+  const { id } = req.params;
   const { content } = req.body;
-  const postId = req.params.id;
 
-  if (!content || content.trim() === '')
+  if (!content || content.trim() === '') {
     return res.status(400).json({ error: 'Content is required' });
+  }
 
   try {
-    const postRes = await db.query('SELECT * FROM posts WHERE id = $1', [postId]);
+    const postRes = await db.query('SELECT * FROM posts WHERE id = $1', [id]);
     if (postRes.rows.length === 0)
       return res.status(404).json({ error: 'Post not found' });
 
@@ -94,63 +101,69 @@ router.put('/:id', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'You can edit only your own posts' });
 
     const updated = await db.query(
-      `UPDATE posts 
-       SET content = $1, updated_at = NOW() 
-       WHERE id = $2 
+      `UPDATE posts
+       SET content = $1, updated_at = NOW()
+       WHERE id = $2
        RETURNING *`,
-      [content, postId]
+      [content, id]
     );
 
-    console.log(`✏️ Post ${postId} updated by user ${req.user.username}`);
+    console.log(`✏️ Post ${id} updated by user ID ${req.user.id}`);
     res.json(updated.rows[0]);
   } catch (err) {
-    console.error('Error updating post:', err);
+    console.error('❌ Error updating post:', err);
     res.status(500).json({ error: 'Failed to update post' });
   }
 });
 
 // === Удалить пост === (только автор)
 router.delete('/:id', authMiddleware, async (req, res) => {
-  const id = req.params.id;
+  const { id } = req.params;
+
   try {
     const postRes = await db.query('SELECT * FROM posts WHERE id = $1', [id]);
     if (postRes.rows.length === 0)
       return res.status(404).json({ error: 'Post not found' });
+
     if (postRes.rows[0].user_id !== req.user.id)
       return res.status(403).json({ error: 'You can delete only your own posts' });
 
     await db.query('DELETE FROM comments WHERE post_id = $1', [id]);
     await db.query('DELETE FROM posts WHERE id = $1', [id]);
+
+    console.log(`🗑️ Post ${id} deleted by user ID ${req.user.id}`);
     res.json({ success: true });
   } catch (err) {
-    console.error('Error deleting post:', err);
+    console.error('❌ Error deleting post:', err);
     res.status(500).json({ error: 'Failed to delete post' });
   }
 });
 
 // === Добавить комментарий === (только авторизованный)
 router.post('/:id/comments', authMiddleware, async (req, res) => {
-  const postId = req.params.id;
+  const { id } = req.params;
   const { content } = req.body;
+  const userId = req.user.id;
 
-  if (!content || content.trim() === '')
+  if (!content || content.trim() === '') {
     return res.status(400).json({ error: 'Comment content is required' });
+  }
 
   try {
     const result = await db.query(
       `INSERT INTO comments (post_id, user_id, content, created_at)
        VALUES ($1, $2, $3, NOW())
        RETURNING *`,
-      [postId, req.user.id, content]
+      [id, userId, content]
     );
 
-    const userRes = await db.query('SELECT username FROM users WHERE id = $1', [req.user.id]);
+    const userRes = await db.query('SELECT username FROM users WHERE id = $1', [userId]);
     const comment = { ...result.rows[0], username: userRes.rows[0].username };
 
-    console.log(`💬 New comment by ${comment.username}`);
+    console.log(`💬 Comment added by ${comment.username}`);
     res.status(201).json(comment);
   } catch (err) {
-    console.error('Error adding comment:', err);
+    console.error('❌ Error adding comment:', err);
     res.status(500).json({ error: 'Failed to add comment' });
   }
 });
