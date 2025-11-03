@@ -196,13 +196,14 @@
     /* Chats Layout */
     .chats-wrapper { 
       display: grid;
-      grid-template-columns: 30% 70%; /* левая панель 30%, правая 70% */
+      grid-template-columns: 28% 72%; /* Пропорции панелей */
       gap: 20px;
-      width: 100vw;              /* занимать всю ширину экрана */
-      height: calc(100vh - 140px); /* не длиннее экрана */
-      margin: 0;                 /* убрать отступы */
-      padding: 0 20px;           /* немного отступа по бокам */
+      width: 100%;                 /* Вместо 100vw */
+      max-width: 1400px;           /* Ограничим максимум, чтобы красиво выглядело */
+      margin: 0 auto;              /* Центрирование */
+      height: calc(100vh - 140px); /* Не длиннее экрана */
       box-sizing: border-box;
+      padding: 0 10px;             /* Немного внутреннего отступа */
     }
     
     .panel { 
@@ -878,6 +879,7 @@
   </script>
 </body>
 </html>
+
 
 
 
