@@ -350,6 +350,8 @@
     });
     document.getElementById('navChats').addEventListener('click', () => {
       showSection('chats');
+      loadIncomingRequests();
+      loadFriends();
     });
 
     // 🔹 Startup
