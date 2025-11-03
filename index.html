@@ -195,14 +195,13 @@
     
     /* Chats Layout */
     .chats-wrapper { 
-      display: grid; 
-      grid-template-columns: 260px 1fr; 
+      display: grid;
+      grid-template-columns: 300px 1fr;
       gap: 20px;
       height: calc(100vh - 140px);
-      width: 100vw;       /* растягиваем на всю ширину экрана */
-      max-width: none;    /* убираем ограничение */
-      margin: 0;          /* убираем центрирование */
-      padding: 0 30px;    /* можно добавить немного отступа слева и справа */
+      width: 100%;
+      padding: 0 20px;
+      justify-content: start;
       box-sizing: border-box;
     }
     
@@ -878,6 +877,7 @@
   </script>
 </body>
 </html>
+
 
 
 
