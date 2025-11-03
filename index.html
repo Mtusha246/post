@@ -60,6 +60,23 @@
       cursor: pointer;
     }
     button.delete-btn:hover { color: #222; }
+    /* Messenger-like layout for chats */
+    .chats-wrapper { display: grid; grid-template-columns: 260px 1fr; gap: 16px; }
+    .panel { background:#fff; border:1px solid #dbdbdb; border-radius: 3px; overflow: hidden; }
+    .panel-header { padding:12px 14px; border-bottom:1px solid #efefef; font-weight:600; }
+    .panel-body { padding: 12px; }
+    .friends-list { max-height: 60vh; overflow:auto; }
+    .friend-item { display:flex; align-items:center; gap:10px; padding:8px; border-radius:8px; cursor:pointer; }
+    .friend-item:hover { background:#f5f5f5; }
+    .friend-avatar { width:28px; height:28px; border-radius:50%; background:#9c27b0; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; }
+    .chat-window { display:flex; flex-direction:column; height:60vh; }
+    .messages { flex:1; overflow:auto; padding: 10px; background:#fafafa; }
+    .msg { max-width:70%; margin:6px 0; padding:8px 12px; border-radius:16px; line-height:1.35; word-wrap:break-word; }
+    .msg.me { background:#d1eaff; margin-left:auto; border-top-right-radius:6px; }
+    .msg.them { background:#eee; margin-right:auto; border-top-left-radius:6px; }
+    .composer { display:flex; gap:8px; padding:10px; border-top:1px solid #efefef; background:#fff; }
+    .composer input { flex:1; padding:10px; border:1px solid #dbdbdb; border-radius: 8px; }
+    .composer button { width:auto; }
   </style>
 </head>
 <body>
@@ -100,23 +117,33 @@
 
     <!-- Chats Section -->
     <section id="chatsSection" style="display:none">
-      <div class="create-post-card">
-        <div class="card-header">Friends & Requests</div>
-        <div class="card-body">
-          <div style="margin-bottom:10px; font-weight:600;">Send friend request</div>
-          <input id="addFriendUsername" placeholder="Enter username" />
-          <button class="primary" onclick="sendFriendRequest()">Add Friend</button>
+      <div class="chats-wrapper">
+        <!-- Sidebar: friends + requests -->
+        <div class="panel">
+          <div class="panel-header">People</div>
+          <div class="panel-body">
+            <div style="display:flex; gap:6px; margin-bottom:10px;">
+              <input id="addFriendUsername" placeholder="Enter username" style="flex:1; padding:8px; border:1px solid #dbdbdb; border-radius:8px;" />
+              <button class="primary" style="width:auto; padding:0 12px;" onclick="sendFriendRequest()">Add</button>
+            </div>
+            <div style="font-weight:600; margin:6px 0 6px;">Incoming</div>
+            <div id="incomingRequests">Loading...</div>
+            <div style="font-weight:600; margin:12px 0 6px;">Friends</div>
+            <div class="friends-list" id="friendsList">Loading...</div>
+          </div>
         </div>
-      </div>
 
-      <div class="create-post-card">
-        <div class="card-header">Incoming Requests</div>
-        <div class="card-body" id="incomingRequests">Loading...</div>
-      </div>
-
-      <div class="create-post-card">
-        <div class="card-header">Your Friends</div>
-        <div class="card-body" id="friendsList">Loading...</div>
+        <!-- Chat window -->
+        <div class="panel">
+          <div class="panel-header" id="chatHeader">Select a friend</div>
+          <div class="chat-window">
+            <div class="messages" id="messagesContainer"></div>
+            <div class="composer">
+              <input id="messageInput" placeholder="Type a message" onkeydown="if(event.key==='Enter'){sendMessage()}" />
+              <button class="primary" onclick="sendMessage()">Send</button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </div>
@@ -276,10 +303,83 @@
           return;
         }
         container.innerHTML = friends.map(f => `
-          <div>${escapeHtml(f.username)} (${escapeHtml(f.email || '')})</div>
+          <div class="friend-item" onclick="openChat(${f.id}, '${encodeURIComponent(f.username)}')">
+            <div class="friend-avatar">${escapeHtml((f.username||'?')[0].toUpperCase())}</div>
+            <div>${escapeHtml(f.username)}</div>
+          </div>
         `).join('');
       } catch (e) {
         container.textContent = 'Failed to load friends';
+      }
+    }
+
+    // ---- Chat client ----
+    let currentChatUserId = null;
+    let pollTimer = null;
+
+    function setChatHeader(name) {
+      const header = document.getElementById('chatHeader');
+      header.textContent = name ? `Chat with ${name}` : 'Select a friend';
+    }
+
+    function renderMessages(list) {
+      const box = document.getElementById('messagesContainer');
+      box.innerHTML = list.map(m => {
+        const mine = m.sender_id === window.__me_id;
+        return `<div class="msg ${mine ? 'me':'them'}">${escapeHtml(m.content)}</div>`;
+      }).join('');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function discoverMe() {
+      try {
+        const res = await fetch(`${API_BASE}/auth/check`, { credentials: 'include' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.user) window.__me_id = data.user.id;
+      } catch {}
+    }
+
+    async function loadMessages(friendId) {
+      const res = await fetch(`${API_BASE}/messages/${friendId}`, { credentials:'include' });
+      if (!res.ok) throw new Error('Failed to load messages');
+      return res.json();
+    }
+
+    async function openChat(friendId, encodedName) {
+      await discoverMe();
+      currentChatUserId = friendId;
+      setChatHeader(decodeURIComponent(encodedName));
+      try {
+        const list = await loadMessages(friendId);
+        renderMessages(list);
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(async () => {
+          try { renderMessages(await loadMessages(friendId)); } catch {}
+        }, 3000);
+      } catch (e) {
+        alert('Failed to open chat');
+      }
+    }
+
+    async function sendMessage() {
+      if (!currentChatUserId) return;
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      try {
+        const res = await fetch(`${API_BASE}/messages/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ toUserId: currentChatUserId, content: text })
+        });
+        if (!res.ok) throw new Error('Send failed');
+        const list = await loadMessages(currentChatUserId);
+        renderMessages(list);
+      } catch (e) {
+        alert('Error: ' + e.message);
       }
     }
 
