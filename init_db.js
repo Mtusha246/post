@@ -69,7 +69,18 @@ async function init() {
       );
     `);
 
-    console.log('✅ Tables created successfully (users + posts + comments + friends)');
+    // === MESSAGES ===
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS messages (
+        id SERIAL PRIMARY KEY,
+        sender_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        receiver_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    console.log('✅ Tables created successfully (users + posts + comments + friends + messages)');
   } catch (err) {
     console.error('❌ Error initializing DB:', err);
   } finally {
