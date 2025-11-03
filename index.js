@@ -133,41 +133,20 @@ app.get('/check-auth', (req, res) => {
   console.log('🍪 /check-auth cookies:', req.cookies);
 
   const token = req.cookies?.token;
-  if (!token) {
-    console.log('🟠 /check-auth → No token');
-    return res.json({ authenticated: false });
-  }
+  if (!token) return res.json({ authenticated: false });
 
   const decoded = verifyToken(token);
-  if (!decoded) {
-    console.log('🔴 /check-auth → Invalid token');
-    return res.json({ authenticated: false });
-  }
+  if (!decoded) return res.json({ authenticated: false });
 
   const user = { id: decoded.id, username: decoded.username, email: decoded.email };
   console.log('🟢 /check-auth → Authenticated as', user.username);
   res.json({ authenticated: true, user });
 });
 
-// === HOME ===
-app.get('/', (req, res) => {
-  console.log('🍪 Cookies received at /:', req.cookies);
-
-  const token = req.cookies?.token;
-  if (!token) {
-    console.log('🟠 No token — redirect to auth');
-    return res.sendFile(path.join(__dirname, 'auth.html'));
-  }
-
-  const valid = verifyToken(token);
-  if (valid) {
-    console.log('🟢 Valid token:', valid.username);
-    return res.sendFile(path.join(__dirname, 'index.html'));
-  }
-
-  console.log('🔴 Invalid token — redirect to auth');
-  res.sendFile(path.join(__dirname, 'auth.html'));
-});
+// === ROUTES ===
+// ⚠️ ВАЖНО: подключаем posts.js после авторизации
+const postsRouter = require('./posts');
+app.use('/posts', postsRouter);
 
 // === LOGOUT ===
 app.post('/logout', (req, res) => {
@@ -181,8 +160,8 @@ app.post('/logout', (req, res) => {
 });
 
 // === FALLBACK ===
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, 'auth.html'));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
