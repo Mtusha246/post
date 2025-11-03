@@ -846,4 +846,29 @@
         const u = data.user || {};
         info.innerHTML = `
           <div><b>Username:</b> ${escapeHtml(u.username || '')}</div>
-          <div><b>Email:</b>
+          <div><b>Email:</b> ${escapeHtml(u.email || '')}</div>
+        `;
+      } catch (e) {
+        info.textContent = 'Failed to load profile';
+      }
+    }
+
+    document.getElementById('navHome').addEventListener('click', () => {
+      showSection('home');
+      fetchPosts();
+    });
+    document.getElementById('navProfile').addEventListener('click', () => {
+      showSection('profile');
+      loadProfile();
+    });
+    document.getElementById('navChats').addEventListener('click', () => {
+      showSection('chats');
+      loadIncomingRequests();
+      loadFriends();
+    });
+
+    // Startup
+    checkAuth().then(auth => { if (auth) { showSection('home'); fetchPosts(); } });
+  </script>
+</body>
+</html>
