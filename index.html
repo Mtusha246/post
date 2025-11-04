@@ -11,6 +11,7 @@
       background: #fafafa; 
       min-height: 100vh; 
       color: #262626;
+      overflow: hidden;
     }
     
     /* Header */
@@ -209,6 +210,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box; /* Всегда хорошая практика */
+    overflow: hidden;
 }
 
 /* Также проверьте main, если он является прямым контейнером для .chats-wrapper */
@@ -222,11 +224,12 @@
       display: grid;
       grid-template-columns: 25% 75%; /* Левая 25%, правая 75% */
       gap: 0;                         /* Без промежутков */
-      width: 100vw;                   /* Вся ширина экрана */
+      width: 100%;                   /* Вся ширина экрана */
       height: calc(100vh - 56px);    /* Чуть меньше, чтобы не перекрывать шапку */
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      overflow: hidden;
     }
     
     .panel { 
@@ -993,6 +996,7 @@
   </script>
 </body>
 </html>
+
 
 
 
