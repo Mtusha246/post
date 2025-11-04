@@ -225,7 +225,7 @@
       grid-template-columns: 25% 75%; /* Левая 25%, правая 75% */
       gap: 0;                         /* Без промежутков */
       width: 100vw;                   /* Вся ширина экрана */
-      height: calc(100vh - 100px);    /* Чуть меньше, чтобы не перекрывать шапку */
+      height: calc(100vh - 56px);    /* Чуть меньше, чтобы не перекрывать шапку */
       margin: 0;
       padding: 0;
       box-sizing: border-box;
@@ -350,6 +350,12 @@
       border-radius: 20px;
       margin: 0;
     }
+
+    #chatsSection {
+    padding: 0;
+    margin: 0;
+    max-width: 100%;
+}
     
     /* Add Friend Input */
     #addFriendUsername {
@@ -419,7 +425,7 @@
         font-size: 13px;
       }
       .container {
-        padding: 20px 12px;
+        min-height: calc(100vh - 56px);
       }
       .create-post-card {
         border-radius: 10px;
@@ -984,6 +990,7 @@
   </script>
 </body>
 </html>
+
 
 
 
