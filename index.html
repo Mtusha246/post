@@ -746,6 +746,8 @@
     // ---- Chat client ----
     let currentChatUserId = null;
     let pollTimer = null;
+    let currentMessageCount = 0; // <-- НОВЫЙ СЧЕТЧИК
+    
 
     function setChatHeader(name) {
       const header = document.getElementById('chatHeader');
@@ -754,11 +756,31 @@
 
     function renderMessages(list) {
       const box = document.getElementById('messagesContainer');
-      box.innerHTML = list.map(m => {
-        const mine = m.sender_id === window.__me_id;
-        return `<div class="msg ${mine ? 'me':'them'}">${escapeHtml(m.content)}</div>`;
-      }).join('');
-      box.scrollTop = box.scrollHeight;
+    
+    // Определяем, был ли пользователь прокручен до самого низа
+    // Добавляем небольшой буфер (например, 2 пикселя) для надежности
+    const isScrolledToBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 2; 
+    
+    // Получаем только те сообщения, которых еще нет
+    const newMessages = list.slice(currentMessageCount); 
+
+    if (newMessages.length > 0) {
+        // Создаем HTML только для НОВЫХ сообщений
+        const newHtml = newMessages.map(m => {
+            const mine = m.sender_id === window.__me_id;
+            return `<div class="msg ${mine ? 'me':'them'}">${escapeHtml(m.content)}</div>`;
+        }).join('');
+        
+        // 1. Добавляем новый HTML в конец
+        box.innerHTML += newHtml;
+        
+        // 2. ❗ ОБНОВЛЯЕМ СЧЕТЧИК ❗
+        currentMessageCount = list.length;
+        
+        // 3. Прокручиваем вниз, только если пользователь был внизу
+        if (isScrolledToBottom) {
+            box.scrollTop = box.scrollHeight;
+        }
     }
 
     async function discoverMe() {
@@ -889,6 +911,7 @@
   </script>
 </body>
 </html>
+
 
 
 
