@@ -755,33 +755,33 @@
     }
 
     function renderMessages(list) {
-      const box = document.getElementById('messagesContainer');
-    
-    // Определяем, был ли пользователь прокручен до самого низа
-    // Добавляем небольшой буфер (например, 2 пикселя) для надежности
-    const isScrolledToBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 2; 
-    
-    // Получаем только те сообщения, которых еще нет
-    const newMessages = list.slice(currentMessageCount); 
+        const box = document.getElementById('messagesContainer');
+        
+        // Определяем, был ли пользователь прокручен до самого низа
+        const isScrolledToBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 2; 
+        
+        // Получаем только те сообщения, которых еще нет
+        const newMessages = list.slice(currentMessageCount); 
 
-    if (newMessages.length > 0) {
-        // Создаем HTML только для НОВЫХ сообщений
-        const newHtml = newMessages.map(m => {
-            const mine = m.sender_id === window.__me_id;
-            return `<div class="msg ${mine ? 'me':'them'}">${escapeHtml(m.content)}</div>`;
-        }).join('');
-        
-        // 1. Добавляем новый HTML в конец
-        box.innerHTML += newHtml;
-        
-        // 2. ❗ ОБНОВЛЯЕМ СЧЕТЧИК ❗
-        currentMessageCount = list.length;
-        
-        // 3. Прокручиваем вниз, только если пользователь был внизу
-        if (isScrolledToBottom) {
-            box.scrollTop = box.scrollHeight;
-        }
-    }
+        if (newMessages.length > 0) {
+            // Создаем HTML только для НОВЫХ сообщений
+            const newHtml = newMessages.map(m => {
+                const mine = m.sender_id === window.__me_id;
+                return `<div class="msg ${mine ? 'me':'them'}">${escapeHtml(m.content)}</div>`;
+            }).join('');
+            
+            // 1. Добавляем новый HTML в конец
+            box.innerHTML += newHtml;
+            
+            // 2. ❗ ОБНОВЛЯЕМ СЧЕТЧИК ❗
+            currentMessageCount = list.length;
+            
+            // 3. Прокручиваем вниз, только если пользователь был внизу
+            if (isScrolledToBottom) {
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+    } // <--- 🎉 Функция теперь полностью закрыта и сохраняет отступ!
 
     async function discoverMe() {
       try {
@@ -911,6 +911,7 @@
   </script>
 </body>
 </html>
+
 
 
 
