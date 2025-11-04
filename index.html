@@ -378,6 +378,25 @@
       color: #8e8e8e;
       font-weight: 500;
     }
+
+    /* ДОБАВИТЬ В <style> */
+
+/* Анимация: Сообщение слегка появляется */
+    @keyframes newMessagePop {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+  /* Класс, который будет запускать анимацию */
+    .msg.new-animation {
+        animation: newMessagePop 0.3s ease-out; /* Анимация длится 0.3 секунды */
+    }
     
     /* Mobile Responsive */
     @media (max-width: 768px) {
@@ -799,41 +818,87 @@
     }
 
     async function openChat(friendId, encodedName) {
-      await discoverMe();
-      currentChatUserId = friendId;
-      setChatHeader(decodeURIComponent(encodedName));
-      try {
-        const list = await loadMessages(friendId);
-        renderMessages(list);
-        if (pollTimer) clearInterval(pollTimer);
-        pollTimer = setInterval(async () => {
-          try { renderMessages(await loadMessages(friendId)); } catch {}
-        }, 3000);
-      } catch (e) {
-        alert('Failed to open chat');
-      }
-    }
+      await discoverMe();
+      currentChatUserId = friendId;
+      setChatHeader(decodeURIComponent(encodedName));
 
+      // ДОБАВЛЕНО: Сброс состояния для нового чата
+      currentMessageCount = 0; 
+      const box = document.getElementById('messagesContainer');
+      box.innerHTML = ''; 
+      if (pollTimer) clearInterval(pollTimer); 
+
+      try {
+        const list = await loadMessages(friendId);
+        
+        // ПЕРВАЯ ОТРИСОВКА: делаем полную отрисовку и устанавливаем прокрутку.
+        box.innerHTML = list.map(m => {
+            const mine = m.sender_id === window.__me_id;
+            // ВАЖНО: здесь класс 'new-animation' НЕ добавляем
+            return `<div class="msg ${mine ? 'me':'them'}">${escapeHtml(m.content)}</div>`;
+        }).join('');
+        currentMessageCount = list.length; // Устанавливаем счетчик
+        box.scrollTop = box.scrollHeight; 
+
+        // Запускаем поллинг (обновление каждые 3 секунды)
+        pollTimer = setInterval(async () => {
+            try { 
+                // Дальнейший поллинг использует renderMessages, которую мы исправили (без дерганья)
+                renderMessages(await loadMessages(friendId)); 
+            } catch {}
+        }, 3000);
+      } catch (e) {
+        alert('Failed to open chat');
+      }
+    }
     async function sendMessage() {
-      if (!currentChatUserId) return;
-      const input = document.getElementById('messageInput');
-      const text = input.value.trim();
-      if (!text) return;
-      input.value = '';
-      try {
-        const res = await fetch(`${API_BASE}/messages/send`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ toUserId: currentChatUserId, content: text })
-        });
-        if (!res.ok) throw new Error('Send failed');
-        const list = await loadMessages(currentChatUserId);
-        renderMessages(list);
-      } catch (e) {
-        alert('Error: ' + e.message);
-      }
-    }
+      if (!currentChatUserId) return;
+      const input = document.getElementById('messageInput');
+      const content = input.value.trim();
+      if (!content) return;
+
+      input.value = ''; // Очищаем поле сразу
+      
+      try {
+          const res = await fetch(`${API_BASE}/messages/send`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ toUserId: currentChatUserId, content: content })
+          });
+
+          if (!res.ok) throw new Error('Send failed');
+          
+          // 1. ПОЛУЧАЕМ ТОЛЬКО ЧТО ОТПРАВЛЕННОЕ СООБЩЕНИЕ (сервер должен его вернуть)
+          const newMessage = await res.json(); 
+          
+          // 2. СОЗДАЕМ ЭЛЕМЕНТ С КЛАССОМ АНИМАЦИИ
+          const box = document.getElementById('messagesContainer');
+          const mine = newMessage.sender_id === window.__me_id;
+          
+          // Используем document.createElement для создания элемента
+          const msgDiv = document.createElement('div');
+          // ПРИМЕНЯЕМ КЛАСС new-animation
+          msgDiv.className = `msg ${mine ? 'me':'them'} new-animation`; 
+          msgDiv.innerHTML = escapeHtml(newMessage.content);
+          
+          // 3. ДОБАВЛЯЕМ ЕГО В DOM
+          box.appendChild(msgDiv);
+          
+          // 4. ОБНОВЛЯЕМ СЧЕТЧИК и ПРОКРУТКУ
+          currentMessageCount += 1; // Увеличиваем счетчик на 1
+          box.scrollTop = box.scrollHeight;
+
+          // 5. УДАЛЯЕМ КЛАСС АНИМАЦИИ ПОСЛЕ ЕЕ ЗАВЕРШЕНИЯ
+          msgDiv.addEventListener('animationend', () => {
+              msgDiv.classList.remove('new-animation');
+          }, { once: true });
+          
+      } catch (e) {
+          alert('Error: ' + e.message);
+          document.getElementById('messageInput').value = content;
+      }
+    }
 
     function renderPosts(posts) {
       const container = document.getElementById('posts');
@@ -911,6 +976,7 @@
   </script>
 </body>
 </html>
+
 
 
 
