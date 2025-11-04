@@ -204,6 +204,20 @@
       padding: 0;
       overflow: hidden; /* если скролл мешает */
     }
+
+    html, body {
+    height: 100%; /* Убедитесь, что html и body занимают всю высоту */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box; /* Всегда хорошая практика */
+    overflow: hidden; /* Если не хотите прокрутку всего документа */
+}
+
+/* Также проверьте main, если он является прямым контейнером для .chats-wrapper */
+    main {
+        height: calc(100% - 50px); /* Пример: если у вас есть верхний header высотой 50px */
+    /* Или просто height: 100%; если main сам по себе не перекрывает header */
+    }
     
     /* Chats Layout */
     .chats-wrapper { 
@@ -970,6 +984,7 @@
   </script>
 </body>
 </html>
+
 
 
 
