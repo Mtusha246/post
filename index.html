@@ -445,19 +445,24 @@
       /* Chats mobile layout */
       .chats-wrapper {
         grid-template-columns: 1fr;
-        height: auto;
         gap: 0;
+        display: flex;
+        flex-direction: column;
       }
       .panel:first-child {
         max-height: 400px;
         margin-bottom: 16px;
+        flex-shrink: 0;
+        overflow-y: auto;
       }
       .panel:last-child {
-        height: calc(100vh - 560px);
+        flex: 1;
         min-height: 400px;
       }
       .chat-window {
         height: 100%;
+        display: flex;
+        flex-direction: column;
       }
       .messages {
         padding: 16px;
@@ -468,15 +473,15 @@
         padding: 9px 12px;
       }
       .composer {
-        padding: 12px;
+        display: flex;
+        padding: 10px;
       }
       .composer input {
-        font-size: 14px;
-        padding: 10px 14px;
+        flex: 1;
+        min-width: 0;
       }
       .composer button {
-        padding: 0 20px;
-        font-size: 14px;
+        flex-shrink: 0;
       }
       .friend-item {
         padding: 10px;
@@ -991,6 +996,7 @@
   </script>
 </body>
 </html>
+
 
 
 
